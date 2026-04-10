@@ -483,7 +483,16 @@ async function confirmarVenda() {
     
     try {
         const res  = await fetch('/pdv/finalizar', { method: 'POST', body: payload });
-        const data = await res.json();
+        
+        let data;
+        try {
+            data = await res.json();
+        } catch (err) {
+            document.getElementById('loadingModal').classList.add('hidden');
+            console.error('Falha ao decodificar JSON:', err);
+            alert('Erro crítico no servidor (500). Verifique os logs de erro da aplicação ou do PHP para detalhes.');
+            return;
+        }
         
         document.getElementById('loadingModal').classList.add('hidden');
         

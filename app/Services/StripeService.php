@@ -174,13 +174,15 @@ class StripeService
         ));
 
         try {
+            Logger::info("Iniciando criação de PaymentIntent Pix para Venda #{$vendaId} no valor de R$ " . number_format($valor, 2));
+            
             $paymentIntent = PaymentIntent::create([
                 'amount'               => $valorCentavos,
                 'currency'             => 'brl',
                 'payment_method_types' => ['pix'],
                 'metadata'             => [
-                    'venda_id' => $vendaId,
-                    'itens'    => mb_substr($descricaoItens, 0, 500),
+                    'venda_id' => (string)$vendaId,
+                    'itens'    => (string)mb_substr($descricaoItens, 0, 500),
                 ],
                 'payment_method_options' => [
                     'pix' => [
@@ -189,10 +191,16 @@ class StripeService
                 ],
             ]);
 
+            Logger::info("PaymentIntent criado com sucesso: id={$paymentIntent->id} status={$paymentIntent->status}");
+
             // Extrai dados do QR Code Pix
             $pixData     = $paymentIntent->next_action?->pix_display_qr_code ?? null;
             $qrCodeText  = $pixData?->data        ?? '';
             $qrCodeImage = $pixData?->image_url_svg ?? '';
+
+            if (empty($qrCodeText)) {
+                Logger::warning("Stripe criou o PI, mas nenhum QR Code foi retornado para Venda #{$vendaId}. Status: {$paymentIntent->status}");
+            }
 
             // Persiste na venda
             $this->vendaModel->update($vendaId, [
