@@ -1,11 +1,11 @@
 <?php
 
 return [
-    'host'     => $_ENV['DB_HOST'] ?? '127.0.0.1',
-    'port'     => $_ENV['DB_PORT'] ?? '3306',
-    'database' => $_ENV['DB_DATABASE'] ?? 'capitania_pdv',
-    'username' => $_ENV['DB_USERNAME'] ?? 'root',
-    'password' => $_ENV['DB_PASSWORD'] ?? '',
+    'host'     => env('DB_HOST', '127.0.0.1'),
+    'port'     => env('DB_PORT', '3306'),
+    'database' => env('DB_DATABASE', 'capitania_pdv'),
+    'username' => env('DB_USERNAME', 'root'),
+    'password' => env('DB_PASSWORD', ''),
     'charset'  => 'utf8mb4',
     'options'  => [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,

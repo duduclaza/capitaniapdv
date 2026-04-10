@@ -65,7 +65,7 @@ set_exception_handler(function (\Throwable $e) {
         error_log("Logger failed during Exception handling: " . $logError->getMessage());
     }
 
-    if (filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+    if (env('APP_DEBUG', false)) {
         header('Content-Type: text/html; charset=UTF-8');
         echo '<div style="background:#13111e; color:#ff4d4d; padding:30px; font-family:sans-serif; border-left: 5px solid #d946ef; height: 100vh; overflow: auto;">';
         echo '<h1 style="color:#e879f9; margin-top:0;">⚠ Erro de Aplicação (Debug Mode)</h1>';

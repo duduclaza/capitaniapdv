@@ -6,6 +6,24 @@
 
 use App\Core\Csrf;
 
+if (!function_exists('env')) {
+    function env(string $key, mixed $default = null): mixed
+    {
+        $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
+        if ($value === false || $value === null) return $default;
+        
+        if (is_string($value)) {
+            $lower = strtolower($value);
+            if ($lower === 'true') return true;
+            if ($lower === 'false') return false;
+            if ($lower === 'null') return null;
+            if ($lower === 'empty') return '';
+        }
+
+        return $value;
+    }
+}
+
 if (!function_exists('e')) {
     function e(mixed $value): string
     {
@@ -30,7 +48,7 @@ if (!function_exists('csrf_token')) {
 if (!function_exists('url')) {
     function url(string $path = ''): string
     {
-        $base = rtrim($_ENV['APP_URL'] ?? 'http://localhost:8000', '/');
+        $base = rtrim(env('APP_URL', 'http://localhost:8000'), '/');
         return $base . '/' . ltrim($path, '/');
     }
 }
