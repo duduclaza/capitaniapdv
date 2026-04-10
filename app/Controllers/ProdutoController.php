@@ -141,7 +141,7 @@ class ProdutoController extends Controller
     {
         $this->validateCsrf();
 
-        $produto = $this->produto->find((int)$id);
+        $produto = $this->produto->findById((int)$id);
         if (!$produto) {
             $this->flash('error', 'Produto não encontrado.');
             $this->redirect('/produtos');
@@ -201,7 +201,7 @@ class ProdutoController extends Controller
     {
         $this->validateCsrf();
 
-        $produto = $this->produto->find((int)$id);
+        $produto = $this->produto->findById((int)$id);
 
         // Arquiva no Stripe antes de excluir localmente
         if ($produto && !empty($produto['stripe_product_id'])) {
@@ -219,7 +219,7 @@ class ProdutoController extends Controller
      */
     public function stripeInfo(string $id): void
     {
-        $produto = $this->produto->find((int)$id);
+        $produto = $this->produto->findById((int)$id);
         $this->json([
             'produto_id'        => $id,
             'stripe_product_id' => $produto['stripe_product_id'] ?? null,
