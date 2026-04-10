@@ -1,0 +1,108 @@
+<?php
+
+namespace App\Models;
+
+use App\Core\Model;
+
+class Venda extends Model
+{
+    protected string $table = 'vendas';
+
+    public function findAllWithDetails(string $dataInicio = '', string $dataFim = ''): array
+    {
+        $sql = "SELECT v.*, u.nome AS operador_nome, cli.nome AS cliente_nome
+                FROM vendas v
+                LEFT JOIN usuarios u ON u.id = v.created_by
+                LEFT JOIN clientes cli ON cli.id = v.cliente_id";
+
+        $params = [];
+        if ($dataInicio && $dataFim) {
+            $sql .= " WHERE DATE(v.created_at) BETWEEN ? AND ?";
+            $params = [$dataInicio, $dataFim];
+        }
+
+        $sql .= " ORDER BY v.created_at DESC";
+        return $this->raw($sql, $params);
+    }
+
+    public function getItens(int $vendaId): array
+    {
+        return $this->raw(
+            "SELECT vi.*, p.nome AS produto_nome
+             FROM venda_itens vi
+             JOIN produtos p ON p.id = vi.produto_id
+             WHERE vi.venda_id = ?",
+            [$vendaId]
+        );
+    }
+
+    public function getFaturamentoDia(string $data = ''): float
+    {
+        $data = $data ?: today();
+        return (float) $this->rawScalar(
+            "SELECT COALESCE(SUM(valor_final), 0) FROM vendas WHERE status = 'paga' AND DATE(created_at) = ?",
+            [$data]
+        );
+    }
+
+    public function getQuantidadeDia(string $data = ''): int
+    {
+        $data = $data ?: today();
+        return (int) $this->rawScalar(
+            "SELECT COUNT(*) FROM vendas WHERE status = 'paga' AND DATE(created_at) = ?",
+            [$data]
+        );
+    }
+
+    public function getResumoFormaPagamento(string $dataInicio, string $dataFim): array
+    {
+        return $this->raw(
+            "SELECT forma_pagamento, subforma_pagamento, SUM(valor_final) as total, COUNT(*) as quantidade
+             FROM vendas
+             WHERE status = 'paga' AND DATE(created_at) BETWEEN ? AND ?
+             GROUP BY forma_pagamento, subforma_pagamento
+             ORDER BY total DESC",
+            [$dataInicio, $dataFim]
+        );
+    }
+
+    public function updateStripeStatus(string $paymentIntentId, string $status, ?string $paidAt = null): void
+    {
+        $this->rawExec(
+            "UPDATE vendas SET stripe_payment_status = ?, paid_at = ?, status = 'paga', updated_at = NOW()
+             WHERE stripe_payment_intent_id = ?",
+            [$status, $paidAt, $paymentIntentId]
+        );
+    }
+
+    public function findByPaymentIntent(string $paymentIntentId): ?array
+    {
+        return $this->rawOne(
+            "SELECT * FROM vendas WHERE stripe_payment_intent_id = ?",
+            [$paymentIntentId]
+        );
+    }
+
+    public function addItem(int $vendaId, int $produtoId, float $quantidade, float $preco, float $desconto = 0): int
+    {
+        $totalItem = ($quantidade * $preco) - $desconto;
+        $this->rawExec(
+            "INSERT INTO venda_itens (venda_id, produto_id, quantidade, preco_unitario, desconto_item, total_item)
+             VALUES (?, ?, ?, ?, ?, ?)",
+            [$vendaId, $produtoId, $quantidade, $preco, $desconto, $totalItem]
+        );
+        return (int) $this->db->lastInsertId();
+    }
+
+    public function getFaturamentoPorDia(string $dataInicio, string $dataFim): array
+    {
+        return $this->raw(
+            "SELECT DATE(created_at) as data, SUM(valor_final) as total, COUNT(*) as quantidade
+             FROM vendas
+             WHERE status = 'paga' AND DATE(created_at) BETWEEN ? AND ?
+             GROUP BY DATE(created_at)
+             ORDER BY data ASC",
+            [$dataInicio, $dataFim]
+        );
+    }
+}

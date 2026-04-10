@@ -1,0 +1,29 @@
+Options -Indexes -MultiViews
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Block sensitive files
+    RewriteRule ^\.env - [F,L]
+    RewriteRule ^composer\.(json|lock) - [F,L]
+    RewriteRule ^(app|bootstrap|config|database|routes|storage|vendor)/ - [F,L]
+
+    # Block hidden files (dot files except .htaccess)
+    RewriteRule (^|/)\. - [F,L]
+
+    # Serve files/directories that exist directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Redirect all remaining requests to public/index.php
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    # Fallback if mod_rewrite is NOT available
+    ErrorDocument 403 /index.php
+    ErrorDocument 404 /index.php
+</IfModule>
