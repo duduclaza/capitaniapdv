@@ -35,20 +35,56 @@ if ($appConfig['debug']) {
 }
 
 // Global error log handler
-set_error_handler(function ($errno, $errstr, $errfile, $errline) {
-    \App\Core\Logger::error("PHP Error [$errno]: $errstr in $errfile on line $errline");
+$isErrorHandling = false;
+set_error_handler(function ($errno, $errstr, $errfile, $errline) use (&$isErrorHandling) {
+    // Ignore suppressed errors (@ operator)
+    if (!(error_reporting() & $errno)) return false;
+    
+    // Prevent infinite recursion if Logger fails
+    if ($isErrorHandling) return false;
+    
+    $isErrorHandling = true;
+    try {
+        \App\Core\Logger::error("PHP Error [$errno]: $errstr in $errfile on line $errline");
+    } catch (\Throwable $e) {
+        // Fallback to native error log
+        error_log("Logger failed during PHP Error handling: " . $e->getMessage());
+    } finally {
+        $isErrorHandling = false;
+    }
+    
+    // In debug mode, we might want these to be fatal for development
+    // (optional, keeping it simple for now)
+    return false; // Let native handler continue
 });
 
 set_exception_handler(function (\Throwable $e) {
-    \App\Core\Logger::error("Uncaught Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
-    if ($_ENV['APP_DEBUG'] ?? false) {
-        echo '<pre style="color:red;padding:20px;">';
-        echo '<strong>Error:</strong> ' . htmlspecialchars($e->getMessage()) . "\n\n";
+    try {
+        \App\Core\Logger::error("Uncaught Exception: " . $e->getMessage() . "\n" . $e->getTraceAsString());
+    } catch (\Throwable $logError) {
+        error_log("Logger failed during Exception handling: " . $logError->getMessage());
+    }
+
+    if (filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+        header('Content-Type: text/html; charset=UTF-8');
+        echo '<div style="background:#13111e; color:#ff4d4d; padding:30px; font-family:sans-serif; border-left: 5px solid #d946ef; height: 100vh; overflow: auto;">';
+        echo '<h1 style="color:#e879f9; margin-top:0;">⚠ Erro de Aplicação (Debug Mode)</h1>';
+        echo '<div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:20px; border: 1px solid rgba(255,255,255,0.1);">';
+        echo '<strong style="display:block; margin-bottom:5px; color:#fff;">Mensagem:</strong> ' . htmlspecialchars($e->getMessage());
+        echo '</div>';
+        echo '<div><strong style="color:#fff;">Arquivo:</strong> ' . htmlspecialchars($e->getFile()) . ' on line ' . $e->getLine() . '</div>';
+        echo '<h2 style="color:#fff; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:10px; margin-top:30px;">Stack Trace:</h2>';
+        echo '<pre style="background:rgba(0,0,0,0.3); padding:15px; border-radius:10px; white-space:pre-wrap; font-size:13px; color:#aaa;">';
         echo htmlspecialchars($e->getTraceAsString());
         echo '</pre>';
+        echo '</div>';
     } else {
         http_response_code(500);
-        echo '500 - Internal Server Error';
+        if (file_exists(VIEWS_PATH . '/errors/500.php')) {
+            include VIEWS_PATH . '/errors/500.php';
+        } else {
+            echo '500 - Internal Server Error';
+        }
     }
     exit(1);
 });
