@@ -97,39 +97,4 @@ class Produto extends Model
         );
     }
 
-    /**
-     * Retorna produtos ativos que ainda não foram sincronizados com o Stripe.
-     */
-    public function findSemStripe(): array
-    {
-        return $this->raw(
-            "SELECT * FROM produtos
-             WHERE ativo = 1 AND (stripe_product_id IS NULL OR stripe_product_id = '')
-             ORDER BY nome ASC"
-        );
-    }
-
-    /**
-     * Busca produto pelo stripe_product_id.
-     */
-    public function findByStripeProduct(string $stripeProductId): ?array
-    {
-        return $this->rawOne(
-            "SELECT * FROM produtos WHERE stripe_product_id = ? LIMIT 1",
-            [$stripeProductId]
-        );
-    }
-
-    /**
-     * Retorna o stripe_price_id de um produto para uso no PaymentIntent.
-     */
-    public function getStripePriceId(int $id): ?string
-    {
-        $row = $this->rawOne(
-            "SELECT stripe_price_id FROM produtos WHERE id = ?",
-            [$id]
-        );
-        return $row['stripe_price_id'] ?? null;
-    }
-}
 

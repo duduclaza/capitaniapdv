@@ -186,6 +186,9 @@
             <a href="/relatorios/vendas" class="nav-link <?= isActive('/relatorios') ?> flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-all">
                 <i data-lucide="bar-chart-2" class="w-4 h-4"></i> Relatórios
             </a>
+            <a href="/config" class="nav-link <?= isActive('/config') ?> flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-all">
+                <i data-lucide="settings" class="w-4 h-4"></i> Configurações
+            </a>
             <?php if (isAdmin()): ?>
             <a href="/usuarios" class="nav-link <?= isActive('/usuarios') ?> flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-300 hover:bg-white/5 hover:text-white transition-all">
                 <i data-lucide="user-cog" class="w-4 h-4"></i> Usuários

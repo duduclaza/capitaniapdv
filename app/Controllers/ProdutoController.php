@@ -5,19 +5,16 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\Produto;
 use App\Models\Categoria;
-use App\Services\StripeService;
 
 class ProdutoController extends Controller
 {
     private Produto $produto;
     private Categoria $categoria;
-    private StripeService $stripe;
 
     public function __construct()
     {
         $this->produto   = new Produto();
         $this->categoria = new Categoria();
-        $this->stripe    = new StripeService();
     }
 
     public function index(): void
@@ -84,33 +81,10 @@ class ProdutoController extends Controller
             $data['imagem_tipo'] = null;
         }
 
-        // Insere o produto localmente primeiro para obter o ID
-        $produtoId = $this->produto->insert($data);
+        // Insere o produto localmente
+        $this->produto->insert($data);
 
-        // -----------------------------------------------------------------------
-        // Sincroniza com Stripe — cria Product + Price
-        // -----------------------------------------------------------------------
-        $data['id'] = $produtoId;
-        $stripeData = $this->stripe->criarProduto($data);
-
-        // Salva os IDs do Stripe no produto local
-        if ($stripeData['stripe_product_id']) {
-            $this->produto->update((int)$produtoId, [
-                'stripe_product_id' => $stripeData['stripe_product_id'],
-                'stripe_price_id'   => $stripeData['stripe_price_id'],
-                'updated_at'        => now(),
-            ]);
-        }
-        // -----------------------------------------------------------------------
-
-        $msg = 'Produto cadastrado com sucesso!';
-        if ($stripeData['stripe_product_id']) {
-            $msg .= ' ✓ Sincronizado com Stripe (ID: ' . $stripeData['stripe_product_id'] . ')';
-        } else {
-            $msg .= ' ⚠ Não foi possível sincronizar com o Stripe agora.';
-        }
-
-        $this->flash('success', $msg);
+        $this->flash('success', 'Produto cadastrado com sucesso!');
         $this->redirect('/produtos');
     }
 
@@ -177,79 +151,16 @@ class ProdutoController extends Controller
             }
         }
 
-        // -----------------------------------------------------------------------
-        // Sincroniza com Stripe — atualiza Product + Price se mudou
-        // -----------------------------------------------------------------------
-        $data['id'] = $id;
-        $stripeData = $this->stripe->atualizarProduto(
-            $data,
-            $produto['stripe_product_id'] ?? null,
-            $produto['stripe_price_id']   ?? null
-        );
-
-        $data['stripe_product_id'] = $stripeData['stripe_product_id'];
-        $data['stripe_price_id']   = $stripeData['stripe_price_id'];
-        // -----------------------------------------------------------------------
-
         $this->produto->update((int)$id, $data);
-        $this->flash('success', 'Produto atualizado com sucesso!' .
-            ($stripeData['stripe_product_id'] ? ' ✓ Stripe sincronizado.' : ''));
+        $this->flash('success', 'Produto atualizado com sucesso!');
         $this->redirect('/produtos');
     }
 
     public function destroy(string $id): void
     {
         $this->validateCsrf();
-
-        $produto = $this->produto->findById((int)$id);
-
-        // Arquiva no Stripe antes de excluir localmente
-        if ($produto && !empty($produto['stripe_product_id'])) {
-            $this->stripe->arquivarProduto($produto['stripe_product_id']);
-        }
-
         $this->produto->delete((int)$id);
-        $this->flash('success', 'Produto removido.' .
-            ($produto['stripe_product_id'] ? ' ✓ Arquivado no Stripe.' : ''));
-        $this->redirect('/produtos');
-    }
-
-    /**
-     * Ajax: retorna ID Stripe de um produto (para debug/verificação)
-     */
-    public function stripeInfo(string $id): void
-    {
-        $produto = $this->produto->findById((int)$id);
-        $this->json([
-            'produto_id'        => $id,
-            'stripe_product_id' => $produto['stripe_product_id'] ?? null,
-            'stripe_price_id'   => $produto['stripe_price_id']   ?? null,
-        ]);
-    }
-
-    /**
-     * Sincroniza em lote todos os produtos sem stripe_product_id
-     */
-    public function sincronizarTodos(): void
-    {
-        $this->validateCsrf();
-
-        $produtos = $this->produto->findSemStripe();
-        $count    = 0;
-
-        foreach ($produtos as $p) {
-            $stripeData = $this->stripe->criarProduto($p);
-            if ($stripeData['stripe_product_id']) {
-                $this->produto->update((int)$p['id'], [
-                    'stripe_product_id' => $stripeData['stripe_product_id'],
-                    'stripe_price_id'   => $stripeData['stripe_price_id'],
-                    'updated_at'        => now(),
-                ]);
-                $count++;
-            }
-        }
-
-        $this->flash('success', "{$count} produto(s) sincronizados com o Stripe!");
+        $this->flash('success', 'Produto removido.');
         $this->redirect('/produtos');
     }
 

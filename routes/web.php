@@ -15,6 +15,7 @@ use App\Controllers\RelatorioController;
 use App\Controllers\UsuarioController;
 use App\Controllers\WebhookController;
 use App\Controllers\VendaController;
+use App\Controllers\ConfigController;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\AdminMiddleware;
 
@@ -39,12 +40,10 @@ $router->get('/pdv/verificar/{id}', [PdvController::class, 'verificarPagamento']
 $router->get('/produtos', [ProdutoController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/produtos/criar', [ProdutoController::class, 'create'], [AuthMiddleware::class]);
 $router->post('/produtos', [ProdutoController::class, 'store'], [AuthMiddleware::class]);
-$router->post('/produtos/sincronizar-stripe', [ProdutoController::class, 'sincronizarTodos'], [AuthMiddleware::class]);
 $router->get('/produtos/{id}/editar', [ProdutoController::class, 'edit'], [AuthMiddleware::class]);
 $router->post('/produtos/{id}', [ProdutoController::class, 'update'], [AuthMiddleware::class]);
 $router->post('/produtos/{id}/deletar', [ProdutoController::class, 'destroy'], [AuthMiddleware::class]);
 $router->get('/produtos/{id}/imagem', [ProdutoController::class, 'imagem'], [AuthMiddleware::class]);
-$router->get('/produtos/{id}/stripe-info', [ProdutoController::class, 'stripeInfo'], [AuthMiddleware::class]);
 
 
 // --- Categorias ---
@@ -119,6 +118,12 @@ $router->get('/relatorios/mais-vendidos', [RelatorioController::class, 'maisVend
 $router->get('/relatorios/movimentacoes', [RelatorioController::class, 'movimentacoes'], [AuthMiddleware::class]);
 $router->get('/relatorios/exportar-vendas', [RelatorioController::class, 'exportarVendas'], [AuthMiddleware::class]);
 
+// --- Configurações ---
+$router->get('/config', [ConfigController::class, 'index'], [AuthMiddleware::class]);
+$router->get('/config/mercadopago/auth', [ConfigController::class, 'mercadoPagoConnect'], [AuthMiddleware::class]);
+$router->get('/config/mercadopago/callback', [ConfigController::class, 'mercadoPagoCallback'], [AuthMiddleware::class]);
+$router->post('/config/mercadopago/disconnect', [ConfigController::class, 'mercadoPagoDisconnect'], [AuthMiddleware::class]);
+
 // --- Usuários ---
 $router->get('/usuarios', [UsuarioController::class, 'index'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/usuarios/criar', [UsuarioController::class, 'create'], [AuthMiddleware::class, AdminMiddleware::class]);
@@ -128,4 +133,4 @@ $router->post('/usuarios/{id}', [UsuarioController::class, 'update'], [AuthMiddl
 $router->post('/usuarios/{id}/deletar', [UsuarioController::class, 'destroy'], [AuthMiddleware::class, AdminMiddleware::class]);
 
 // --- Webhooks ---
-$router->post('/webhooks/stripe', [WebhookController::class, 'stripe']);
+$router->post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);

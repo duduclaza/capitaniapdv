@@ -173,15 +173,15 @@
                 </div>
             </button>
 
-            <!-- Stripe Pix QR -->
-            <button onclick="selectPayment('stripe_qr')" data-method="stripe_qr"
-                    class="payment-btn w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-fuchsia-500/50 hover:bg-fuchsia-900/10 transition-all group">
-                <div class="w-12 h-12 rounded-xl bg-fuchsia-900/30 flex items-center justify-center flex-shrink-0">
-                    <span class="text-2xl">📲</span>
+            <!-- Mercado Pago Pix QR -->
+            <button onclick="selectPayment('mercadopago_qr')" data-method="mercadopago_qr"
+                    class="payment-btn w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 hover:bg-blue-900/10 transition-all group">
+                <div class="w-12 h-12 rounded-xl bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">📱</span>
                 </div>
                 <div class="text-left">
-                    <p class="font-semibold text-white">Pix QR Code</p>
-                    <p class="text-xs text-gray-500">QR gerado via Stripe</p>
+                    <p class="font-semibold text-white">Pix Mercado Pago</p>
+                    <p class="text-xs text-gray-500">QR Dinâmico (Confirmação Automática)</p>
                 </div>
             </button>
         </div>
@@ -424,14 +424,14 @@ function selectPayment(method) {
             </div>`;
         subOpts.classList.remove('hidden');
         btnConf.classList.add('hidden');
-    } else if (method === 'stripe_qr') {
+    } else if (method === 'mercadopago_qr') {
         subOpts.innerHTML = `
-            <div class="bg-fuchsia-900/20 border border-fuchsia-500/20 rounded-xl p-4 text-center">
-                <p class="text-sm text-gray-300">Um QR Code Pix será gerado via Stripe para pagamento instantâneo.</p>
+            <div class="bg-blue-900/20 border border-blue-500/20 rounded-xl p-4 text-center">
+                <p class="text-sm text-gray-300">Um QR Code Pix será gerado via Mercado Pago para pagamento instantâneo.</p>
             </div>`;
         subOpts.classList.remove('hidden');
         btnConf.classList.remove('hidden');
-        btnConf.textContent = '📲 Gerar QR Code Pix';
+        btnConf.textContent = '📱 Gerar QR Code Mercado Pago';
     }
     
     lucide.createIcons();
