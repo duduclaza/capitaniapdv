@@ -129,72 +129,81 @@
 </div>
 
 <!-- Payment Modal -->
-<div id="paymentModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-dark-800 border border-white/10 rounded-3xl w-full max-w-lg shadow-2xl">
+<div id="paymentModal" class="fixed inset-0 bg-dark-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card rounded-[2.5rem] w-full max-w-lg shadow-2xl overflow-hidden border-white/10 fade-in-up">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b border-white/10">
-            <h3 class="text-lg font-bold text-white">Forma de Pagamento</h3>
-            <button onclick="closePaymentModal()" class="p-2 rounded-xl hover:bg-white/5 text-gray-400 hover:text-white">
-                <i data-lucide="x" class="w-5 h-5"></i>
+        <div class="flex items-center justify-between p-8 border-b border-white/5 bg-white/3">
+            <div>
+                <h3 class="text-xl font-bold text-white">Pagamento</h3>
+                <p class="text-sm text-gray-500">Selecione como deseja receber</p>
+            </div>
+            <button onclick="closePaymentModal()" class="w-10 h-10 flex items-center justify-center rounded-2xl hover:bg-white/10 text-gray-400 hover:text-white transition-all">
+                <i data-lucide="x" class="w-6 h-6"></i>
             </button>
         </div>
 
-        <!-- Total -->
-        <div class="p-6 text-center border-b border-white/10">
-            <p class="text-sm text-gray-400 mb-1">Total a pagar</p>
-            <p class="text-4xl font-bold text-primary-400" id="modalTotal">R$ 0,00</p>
+        <!-- Total Display Section -->
+        <div class="p-8 text-center bg-gradient-to-b from-white/3 to-transparent">
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">Total da Venda</p>
+            <p class="text-5xl font-black text-primary-400" id="modalTotal">R$ 0,00</p>
         </div>
 
-        <!-- Payment Options -->
-        <div class="p-6 space-y-3">
+        <!-- Payment Options Layout -->
+        <div class="p-8 pt-0 space-y-4">
             
-            <!-- Cash -->
-            <button onclick="selectPayment('dinheiro')" data-method="dinheiro"
-                    class="payment-btn w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-900/10 transition-all group">
-                <div class="w-12 h-12 rounded-xl bg-emerald-900/30 flex items-center justify-center flex-shrink-0">
-                    <span class="text-2xl">💵</span>
-                </div>
-                <div class="text-left">
-                    <p class="font-semibold text-white">Dinheiro</p>
-                    <p class="text-xs text-gray-500">Pagamento em espécie + troco</p>
-                </div>
-            </button>
+            <div class="grid grid-cols-1 gap-3">
+                <!-- Cash -->
+                <button onclick="selectPayment('dinheiro')" data-method="dinheiro"
+                        class="payment-btn flex items-center gap-5 p-5 rounded-3xl border border-white/10 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="banknote" class="w-7 h-7 text-emerald-500"></i>
+                    </div>
+                    <div class="text-left flex-1">
+                        <p class="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">Dinheiro</p>
+                        <p class="text-xs text-gray-500">Receba em mãos + cálculo de troco</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700 opacity-0 group-hover:opacity-100 transition-all"></i>
+                </button>
 
-            <!-- Card Machine -->
-            <button onclick="selectPayment('maquininha')" data-method="maquininha"
-                    class="payment-btn w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 hover:bg-blue-900/10 transition-all group">
-                <div class="w-12 h-12 rounded-xl bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                    <span class="text-2xl">💳</span>
-                </div>
-                <div class="text-left">
-                    <p class="font-semibold text-white">Maquininha</p>
-                    <p class="text-xs text-gray-500">Débito, crédito ou Pix na maquininha</p>
-                </div>
-            </button>
+                <!-- Card Machine -->
+                <button onclick="selectPayment('maquininha')" data-method="maquininha"
+                        class="payment-btn flex items-center gap-5 p-5 rounded-3xl border border-white/10 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <i data-lucide="credit-card" class="w-7 h-7 text-blue-500"></i>
+                    </div>
+                    <div class="text-left flex-1">
+                        <p class="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">Maquininha</p>
+                        <p class="text-xs text-gray-500">Débito, crédito ou Pix na máquina</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700 opacity-0 group-hover:opacity-100 transition-all"></i>
+                </button>
 
-            <!-- Mercado Pago Pix QR -->
-            <button onclick="selectPayment('mercadopago_qr')" data-method="mercadopago_qr"
-                    class="payment-btn w-full flex items-center gap-4 p-4 rounded-2xl border border-white/10 hover:border-blue-500/50 hover:bg-blue-900/10 transition-all group">
-                <div class="w-12 h-12 rounded-xl bg-blue-900/30 flex items-center justify-center flex-shrink-0">
-                    <span class="text-2xl">📱</span>
-                </div>
-                <div class="text-left">
-                    <p class="font-semibold text-white">Pix Mercado Pago</p>
-                    <p class="text-xs text-gray-500">QR Dinâmico (Confirmação Automática)</p>
-                </div>
-            </button>
-        </div>
+                <!-- Mercado Pago Pix QR -->
+                <button onclick="selectPayment('mercadopago_qr')" data-method="mercadopago_qr"
+                        class="payment-btn flex items-center gap-5 p-5 rounded-3xl border border-white/10 hover:border-[#009ee3]/50 hover:bg-[#009ee3]/5 transition-all group">
+                    <div class="w-14 h-14 rounded-2xl bg-[#009ee3]/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                        <svg viewBox="0 0 32 32" class="w-8 h-8 fill-[#009ee3]"><path d="M22.067 11.233a7.333 7.333 0 01-7.334 7.334H11.4l-2.067 6.1s-.4.6 0 .6h3.4s.467 0 .6-.4l.6-1.8h.4c5.8 0 10.4-4.667 10.4-10.4s-3.2-10-8.933-10h-6.2c-.667 0-1.133.467-1.334 1.133L2.2 24.867s-.4.6 0 .6h3.4s.467 0 .6-.4L10.067 13.1c.333-1 1.2-1.867 2.266-1.867h9.734z"/></svg>
+                    </div>
+                    <div class="text-left flex-1">
+                        <p class="text-lg font-bold text-white group-hover:text-[#00c1ff] transition-colors">Pix Mercado Pago</p>
+                        <p class="text-xs text-gray-500 uppercase font-black tracking-widest text-[#009ee3]/70">Confirmado Automático</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-5 h-5 text-gray-700 opacity-0 group-hover:opacity-100 transition-all"></i>
+                </button>
+            </div>
 
-        <!-- Sub-options area -->
-        <div id="subOptions" class="px-6 pb-6 hidden"></div>
+            <!-- Sub-options area -->
+            <div id="subOptions" class="hidden animate-in fade-in slide-in-from-top-4 duration-300"></div>
 
-        <!-- Confirm button -->
-        <div class="p-6 border-t border-white/10">
-            <button onclick="confirmarVenda()" id="btnConfirmar"
-                    class="w-full hidden bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white font-bold py-4 rounded-2xl transition-all">
-                Confirmar Pagamento
-            </button>
+            <!-- Action Button -->
+            <div id="actionArea" class="hidden pt-4">
+                <button onclick="confirmarVenda()" id="btnConfirmar"
+                        class="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-500 hover:to-primary-600 text-white font-black py-5 rounded-3xl transition-all shadow-xl shadow-primary-900/40 flex items-center justify-center gap-3 active:scale-[0.98]">
+                    <span id="btnConfirmarText">Finalizar Pagamento</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -375,8 +384,8 @@ function openPaymentModal() {
     selectedPayment = null;
     selectedSubform = null;
     document.getElementById('subOptions').classList.add('hidden');
-    document.getElementById('btnConfirmar').classList.add('hidden');
-    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('border-primary-500', 'bg-primary-900/20'));
+    document.getElementById('actionArea').classList.add('hidden');
+    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('border-primary-500', 'bg-primary-500/10', 'scale-[1.02]'));
     document.getElementById('paymentModal').classList.remove('hidden');
 }
 
@@ -388,50 +397,60 @@ function selectPayment(method) {
     selectedPayment = method;
     selectedSubform = null;
     
-    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('border-primary-500', 'bg-primary-900/20'));
-    document.querySelector(`[data-method="${method}"]`).classList.add('border-primary-500', 'bg-primary-900/20');
+    document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('border-primary-500', 'bg-primary-500/10', 'scale-[1.02]'));
+    document.querySelector(`[data-method="${method}"]`).classList.add('border-primary-500', 'bg-primary-500/10', 'scale-[1.02]');
     
     const subOpts = document.getElementById('subOptions');
-    const btnConf = document.getElementById('btnConfirmar');
+    const actionArea = document.getElementById('actionArea');
+    const btnConfText = document.getElementById('btnConfirmarText');
+    
+    const totalStr = document.getElementById('totalDisplay').textContent.replace('R$ ', '').replace('.', '').replace(',', '.');
+    const total = parseFloat(totalStr);
     
     if (method === 'dinheiro') {
-        const total = parseFloat(document.getElementById('totalDisplay').textContent.replace('R$ ', '').replace(',', '.'));
         subOpts.innerHTML = `
-            <div class="space-y-3">
-                <div>
-                    <label class="text-xs text-gray-400 mb-2 block">Valor Recebido (R$)</label>
-                    <input type="number" id="valorRecebido" min="${total}" step="0.01" value="${total}"
-                           oninput="calcTroco()"
-                           class="w-full px-4 py-3 bg-dark-900 border border-white/10 rounded-xl text-white text-lg font-semibold focus:outline-none focus:border-emerald-500">
+            <div class="bg-emerald-500/5 rounded-[2rem] p-6 space-y-4 border border-emerald-500/10">
+                <div class="space-y-1">
+                    <label class="text-[10px] uppercase font-black tracking-widest text-emerald-500 ml-1">Valor Recebido do Cliente</label>
+                    <div class="relative">
+                        <span class="absolute left-5 top-1/2 -translate-y-1/2 text-emerald-500 font-black text-xl">R$</span>
+                        <input type="number" id="valorRecebido" min="${total}" step="0.01" value="${total.toFixed(2)}"
+                               oninput="calcTroco()"
+                               class="w-full pl-14 pr-6 py-5 bg-dark-900 border border-white/5 rounded-2xl text-white text-3xl font-black focus:outline-none focus:border-emerald-500 transition-all">
+                    </div>
                 </div>
-                <div class="flex justify-between items-center bg-emerald-900/20 rounded-xl p-3">
-                    <span class="text-sm text-gray-400">Troco</span>
-                    <span id="trocoDisplay" class="text-xl font-bold text-emerald-400">R$ 0,00</span>
+                <div class="flex justify-between items-center bg-emerald-500/10 rounded-2xl p-5 border border-emerald-500/5">
+                    <span class="text-sm font-bold text-emerald-500/80">Troco a devolver</span>
+                    <span id="trocoDisplay" class="text-3xl font-black text-emerald-400">R$ 0,00</span>
                 </div>
             </div>`;
         subOpts.classList.remove('hidden');
-        btnConf.classList.remove('hidden');
-        btnConf.textContent = 'Confirmar - Dinheiro';
+        actionArea.classList.remove('hidden');
+        btnConfText.textContent = 'Confirmar Recebimento';
     } else if (method === 'maquininha') {
         subOpts.innerHTML = `
-            <div class="space-y-2">
-                <p class="text-xs text-gray-400 mb-3">Selecione a modalidade:</p>
+            <div class="grid grid-cols-1 gap-2 bg-blue-500/5 p-4 rounded-[2rem] border border-blue-500/10">
+                <p class="text-[10px] uppercase font-black tracking-widest text-blue-500 mb-2 ml-1">Selecione a Modalidade</p>
                 ${[['debito','💳 Débito'],['credito','💳 Crédito'],['pix_maquininha','📱 Pix Maquininha']].map(([v,l]) => `
                     <button onclick="selectSubform('${v}')" data-sub="${v}"
-                            class="sub-btn w-full text-left px-4 py-3 rounded-xl border border-white/10 hover:border-primary-500/50 text-sm text-gray-300 hover:text-white transition-all">
+                            class="sub-btn w-full text-left px-5 py-4 rounded-2xl border border-white/5 hover:border-blue-500/30 text-sm font-bold text-gray-400 hover:text-white transition-all">
                         ${l}
                     </button>`).join('')}
             </div>`;
         subOpts.classList.remove('hidden');
-        btnConf.classList.add('hidden');
+        actionArea.classList.add('hidden');
     } else if (method === 'mercadopago_qr') {
         subOpts.innerHTML = `
-            <div class="bg-blue-900/20 border border-blue-500/20 rounded-xl p-4 text-center">
-                <p class="text-sm text-gray-300">Um QR Code Pix será gerado via Mercado Pago para pagamento instantâneo.</p>
+            <div class="bg-[#009ee3]/10 border border-[#009ee3]/30 rounded-[2rem] p-6 text-center">
+                <div class="w-12 h-12 rounded-full bg-[#009ee3]/20 flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="qr-code" class="w-6 h-6 text-[#009ee3]"></i>
+                </div>
+                <p class="text-sm text-gray-200 font-semibold mb-1">Processamento Mercado Pago</p>
+                <p class="text-xs text-gray-500">Um QR Code Pix exclusivo será gerado para esta venda.</p>
             </div>`;
         subOpts.classList.remove('hidden');
-        btnConf.classList.remove('hidden');
-        btnConf.textContent = '📱 Gerar QR Code Mercado Pago';
+        actionArea.classList.remove('hidden');
+        btnConfText.textContent = 'Gerar QR Pix Mercado Pago';
     }
     
     lucide.createIcons();
@@ -439,11 +458,10 @@ function selectPayment(method) {
 
 function selectSubform(val) {
     selectedSubform = val;
-    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('border-primary-500', 'bg-primary-900/20', 'text-white'));
-    document.querySelector(`[data-sub="${val}"]`).classList.add('border-primary-500', 'bg-primary-900/20', 'text-white');
-    const btn = document.getElementById('btnConfirmar');
-    btn.classList.remove('hidden');
-    btn.textContent = 'Confirmar - Maquininha';
+    document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('border-blue-500/50', 'bg-blue-500/10', 'text-white'));
+    document.querySelector(`[data-sub="${val}"]`).classList.add('border-blue-500/50', 'bg-blue-500/10', 'text-white');
+    document.getElementById('actionArea').classList.remove('hidden');
+    document.getElementById('btnConfirmarText').textContent = 'Confirmar Venda na Máquina';
 }
 
 function calcTroco() {
@@ -498,7 +516,7 @@ async function confirmarVenda() {
         
         if (data.success) {
             if (data.awaiting_payment) {
-                // Stripe QR - redirect to payment page
+                // Pagamento pendente - redireciona para tela de QR Code
                 window.location.href = '/vendas/' + data.venda_id + '/aguardando-pagamento';
                 return;
             }
