@@ -97,4 +97,22 @@ class Produto extends Model
         );
     }
 
+    public function possuiVinculos(int $id): bool
+    {
+        return (bool) $this->rawScalar(
+            "SELECT
+                EXISTS(SELECT 1 FROM comanda_itens WHERE produto_id = ? LIMIT 1)
+                OR EXISTS(SELECT 1 FROM venda_itens WHERE produto_id = ? LIMIT 1)
+                OR EXISTS(SELECT 1 FROM movimentacoes_estoque WHERE produto_id = ? LIMIT 1)",
+            [$id, $id, $id]
+        );
+    }
 
+    public function inativar(int $id): bool
+    {
+        return $this->rawExec(
+            "UPDATE produtos SET ativo = 0, updated_at = NOW() WHERE id = ?",
+            [$id]
+        );
+    }
+}

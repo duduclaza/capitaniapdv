@@ -123,7 +123,7 @@
                                     <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                                 </a>
                                 <form method="POST" action="/produtos/<?= $p['id'] ?>/deletar" 
-                                      onsubmit="return confirm('Remover produto?')">
+                                      onsubmit="return confirm('Remover produto? Se houver historico, ele sera inativado.')">
                                     <?= csrf_field() ?>
                                     <button type="submit" class="p-1.5 rounded-lg hover:bg-red-900/30 text-gray-400 hover:text-red-400 transition-colors">
                                         <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>

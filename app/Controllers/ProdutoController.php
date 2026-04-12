@@ -159,8 +159,34 @@ class ProdutoController extends Controller
     public function destroy(string $id): void
     {
         $this->validateCsrf();
-        $this->produto->delete((int)$id);
-        $this->flash('success', 'Produto removido.');
+
+        $produtoId = (int)$id;
+        $produto = $this->produto->findById($produtoId);
+        if (!$produto) {
+            $this->flash('error', 'Produto nao encontrado.');
+            $this->redirect('/produtos');
+            return;
+        }
+
+        if ($this->produto->possuiVinculos($produtoId)) {
+            $this->produto->inativar($produtoId);
+            $this->flash('success', 'Produto possui historico e foi inativado.');
+            $this->redirect('/produtos');
+            return;
+        }
+
+        try {
+            $this->produto->delete($produtoId);
+            $this->flash('success', 'Produto removido.');
+        } catch (\PDOException $e) {
+            if ((string)$e->getCode() !== '23000') {
+                throw $e;
+            }
+
+            $this->produto->inativar($produtoId);
+            $this->flash('success', 'Produto possui historico e foi inativado.');
+        }
+
         $this->redirect('/produtos');
     }
 
