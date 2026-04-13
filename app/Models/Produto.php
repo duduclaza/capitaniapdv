@@ -32,7 +32,8 @@ class Produto extends Model
     public function searchForPDV(string $term): array
     {
         return $this->raw(
-            "SELECT id, nome, sku, codigo_barras, preco_venda, estoque_atual, unidade, controla_estoque
+            "SELECT id, nome, sku, codigo_barras, preco_venda, estoque_atual, unidade, controla_estoque,
+                    (imagem_blob IS NOT NULL) AS tem_imagem
              FROM produtos
              WHERE ativo = 1 AND (nome LIKE ? OR sku LIKE ? OR codigo_barras LIKE ?)
              ORDER BY nome ASC
@@ -169,8 +170,13 @@ class Produto extends Model
             [$produtoId]
         );
 
+        $custosFixos = (float)($produto['custo_energia_valor'] ?? 0)
+            + (float)($produto['custo_agua_valor'] ?? 0)
+            + (float)($produto['custo_aluguel_valor'] ?? 0)
+            + (float)($produto['custo_gas_valor'] ?? 0);
+
         return [
-            'custo_unitario' => (float)($produto['preco_custo'] ?? 0) + $custoComposicao,
+            'custo_unitario' => (float)($produto['preco_custo'] ?? 0) + $custoComposicao + $custosFixos,
             'mao_obra_unitaria' => (float)($produto['mao_obra_valor'] ?? 0),
             'taxa_maquininha_percent' => (float)($produto['taxa_maquininha_percent'] ?? 0),
             'taxa_governo_percent' => (float)($produto['taxa_governo_percent'] ?? 0),

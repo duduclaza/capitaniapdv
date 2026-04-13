@@ -193,10 +193,11 @@ if (!function_exists('percentToPrice')) {
         float $percentLucro,
         float $maoObraValor = 0,
         float $taxaMaquininhaPercent = 0,
-        float $taxaGovernoPercent = 0
+        float $taxaGovernoPercent = 0,
+        float $custosFixosValor = 0
     ): float
     {
-        $base = $cost + $maoObraValor;
+        $base = $cost + $maoObraValor + $custosFixosValor;
         $percentTotal = $percentLucro + $taxaMaquininhaPercent + $taxaGovernoPercent;
 
         if ($percentTotal >= 100) return $base * 2;

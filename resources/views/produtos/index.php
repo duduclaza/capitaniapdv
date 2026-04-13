@@ -72,11 +72,11 @@
                             <?php
                                 $lucro = $p['percent_lucro'] ?? 0;
                                 if ($lucro == 0 && $p['preco_custo'] > 0 && $p['preco_venda'] > 0) {
-                                    $lucro = round((($p['preco_venda'] - $p['preco_custo']) / $p['preco_venda']) * 100, 1);
+                                    $lucro = round((($p['preco_venda'] - $p['preco_custo']) / $p['preco_venda']) * 100, 3);
                                 }
                             ?>
                             <span class="text-xs font-semibold <?= $lucro >= 30 ? 'text-emerald-400' : ($lucro >= 15 ? 'text-amber-400' : 'text-red-400') ?>">
-                                <?= number_format($lucro, 1) ?>%
+                                <?= number_format($lucro, 3, ',', '.') ?>%
                             </span>
                         </td>
                         <td class="px-4 py-3 text-right">

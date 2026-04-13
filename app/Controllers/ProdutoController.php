@@ -38,7 +38,9 @@ class ProdutoController extends Controller
         $data = $this->only([
             'categoria_id', 'nome', 'sku', 'codigo_barras', 'unidade',
             'preco_custo', 'preco_venda', 'percent_lucro',
-            'mao_obra_valor', 'taxa_maquininha_percent', 'taxa_governo_percent',
+            'mao_obra_valor', 'custo_energia_valor', 'custo_agua_valor',
+            'custo_aluguel_valor', 'custo_gas_valor',
+            'taxa_maquininha_percent', 'taxa_governo_percent',
             'estoque_atual', 'estoque_minimo', 'controla_estoque', 'ativo'
         ]);
 
@@ -46,6 +48,11 @@ class ProdutoController extends Controller
         $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
         $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
         $maoObraValor = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $custoEnergiaValor = $this->decimal($data['custo_energia_valor'] ?? '0');
+        $custoAguaValor = $this->decimal($data['custo_agua_valor'] ?? '0');
+        $custoAluguelValor = $this->decimal($data['custo_aluguel_valor'] ?? '0');
+        $custoGasValor = $this->decimal($data['custo_gas_valor'] ?? '0');
+        $custosFixosValor = $custoEnergiaValor + $custoAguaValor + $custoAluguelValor + $custoGasValor;
         $taxaMaquininhaPercent = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
         $taxaGovernoPercent = $this->decimal($data['taxa_governo_percent'] ?? '0');
         $custoComposicao = $this->custoComposicaoPost($_POST['componente_produto_id'] ?? [], $_POST['quantidade_componente'] ?? []);
@@ -57,8 +64,8 @@ class ProdutoController extends Controller
             return;
         }
 
-        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custoComposicao > 0)
-            && ($precoCusto + $custoComposicao + $maoObraValor) > 0;
+        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custosFixosValor > 0 || $custoComposicao > 0)
+            && ($precoCusto + $custoComposicao + $maoObraValor + $custosFixosValor) > 0;
 
         if ($deveCalcularPreco) {
             $data['preco_venda'] = percentToPrice(
@@ -66,7 +73,8 @@ class ProdutoController extends Controller
                 $percentLucro,
                 $maoObraValor,
                 $taxaMaquininhaPercent,
-                $taxaGovernoPercent
+                $taxaGovernoPercent,
+                $custosFixosValor
             );
         }
 
@@ -76,6 +84,10 @@ class ProdutoController extends Controller
         $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
         $data['percent_lucro']            = $percentLucro;
         $data['mao_obra_valor']           = $maoObraValor;
+        $data['custo_energia_valor']      = $custoEnergiaValor;
+        $data['custo_agua_valor']         = $custoAguaValor;
+        $data['custo_aluguel_valor']      = $custoAluguelValor;
+        $data['custo_gas_valor']          = $custoGasValor;
         $data['taxa_maquininha_percent']  = $taxaMaquininhaPercent;
         $data['taxa_governo_percent']     = $taxaGovernoPercent;
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;
@@ -154,13 +166,20 @@ class ProdutoController extends Controller
         $data = $this->only([
             'categoria_id', 'nome', 'sku', 'codigo_barras', 'unidade',
             'preco_custo', 'preco_venda', 'percent_lucro',
-            'mao_obra_valor', 'taxa_maquininha_percent', 'taxa_governo_percent',
+            'mao_obra_valor', 'custo_energia_valor', 'custo_agua_valor',
+            'custo_aluguel_valor', 'custo_gas_valor',
+            'taxa_maquininha_percent', 'taxa_governo_percent',
             'estoque_atual', 'estoque_minimo', 'controla_estoque', 'ativo'
         ]);
 
         $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
         $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
         $maoObraValor = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $custoEnergiaValor = $this->decimal($data['custo_energia_valor'] ?? '0');
+        $custoAguaValor = $this->decimal($data['custo_agua_valor'] ?? '0');
+        $custoAluguelValor = $this->decimal($data['custo_aluguel_valor'] ?? '0');
+        $custoGasValor = $this->decimal($data['custo_gas_valor'] ?? '0');
+        $custosFixosValor = $custoEnergiaValor + $custoAguaValor + $custoAluguelValor + $custoGasValor;
         $taxaMaquininhaPercent = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
         $taxaGovernoPercent = $this->decimal($data['taxa_governo_percent'] ?? '0');
         $custoComposicao = $this->custoComposicaoPost($_POST['componente_produto_id'] ?? [], $_POST['quantidade_componente'] ?? [], (int)$id);
@@ -172,8 +191,8 @@ class ProdutoController extends Controller
             return;
         }
 
-        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custoComposicao > 0)
-            && ($precoCusto + $custoComposicao + $maoObraValor) > 0;
+        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custosFixosValor > 0 || $custoComposicao > 0)
+            && ($precoCusto + $custoComposicao + $maoObraValor + $custosFixosValor) > 0;
 
         if ($deveCalcularPreco) {
             $data['preco_venda'] = percentToPrice(
@@ -181,7 +200,8 @@ class ProdutoController extends Controller
                 $percentLucro,
                 $maoObraValor,
                 $taxaMaquininhaPercent,
-                $taxaGovernoPercent
+                $taxaGovernoPercent,
+                $custosFixosValor
             );
         }
 
@@ -191,6 +211,10 @@ class ProdutoController extends Controller
         $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
         $data['percent_lucro']            = $percentLucro;
         $data['mao_obra_valor']           = $maoObraValor;
+        $data['custo_energia_valor']      = $custoEnergiaValor;
+        $data['custo_agua_valor']         = $custoAguaValor;
+        $data['custo_aluguel_valor']      = $custoAluguelValor;
+        $data['custo_gas_valor']          = $custoGasValor;
         $data['taxa_maquininha_percent']  = $taxaMaquininhaPercent;
         $data['taxa_governo_percent']     = $taxaGovernoPercent;
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;

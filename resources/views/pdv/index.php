@@ -261,9 +261,7 @@ async function searchProducts(q) {
     grid.innerHTML = products.map(p => `
         <button onclick='addToCart(${JSON.stringify(p)})'
                 class="bg-dark-800 hover:bg-dark-700 border border-white/5 hover:border-primary-500/50 rounded-2xl p-4 text-left transition-all group">
-            <div class="w-10 h-10 rounded-lg bg-primary-900/30 flex items-center justify-center mb-3 group-hover:bg-primary-900/50 transition-colors">
-                <i data-lucide="package" class="w-5 h-5 text-primary-400"></i>
-            </div>
+            ${productThumb(p, 'w-full aspect-square rounded-xl mb-3', 'w-7 h-7')}
             <p class="text-sm font-semibold text-white leading-tight">${escapeHtml(p.nome)}</p>
             <p class="text-xs text-gray-500 mt-0.5">${escapeHtml(p.unidade)}</p>
             <p class="text-sm font-bold text-primary-400 mt-2">R$ ${parseFloat(p.preco_venda).toFixed(2).replace('.', ',')}</p>
@@ -279,6 +277,24 @@ function escapeHtml(str) {
     return div.innerHTML;
 }
 
+function hasProductImage(product) {
+    return Number(product.tem_imagem) === 1 || product.tem_imagem === true;
+}
+
+function productThumb(product, classes, iconClasses) {
+    const productId = Number(product.id || product.produto_id);
+    const label = escapeHtml(product.nome || 'Produto');
+
+    if (productId > 0 && hasProductImage(product)) {
+        return `<img src="/produtos/${productId}/imagem" alt="${label}" class="${classes} object-cover bg-white/5">`;
+    }
+
+    return `
+        <div class="${classes} bg-primary-900/30 flex items-center justify-center group-hover:bg-primary-900/50 transition-colors">
+            <i data-lucide="package" class="${iconClasses} text-primary-400"></i>
+        </div>`;
+}
+
 // ------- Cart -------
 function addToCart(product) {
     const existing = cart.find(i => i.produto_id === product.id);
@@ -291,6 +307,7 @@ function addToCart(product) {
             preco_unitario: parseFloat(product.preco_venda),
             quantidade: 1,
             unidade: product.unidade,
+            tem_imagem: product.tem_imagem,
             observacao: '',
         });
     }
@@ -338,6 +355,7 @@ function renderCart() {
     container.innerHTML = cart.map((item, idx) => `
         <div class="p-4 hover:bg-white/3 transition-colors">
             <div class="flex items-start gap-3">
+                ${productThumb(item, 'w-12 h-12 rounded-xl flex-shrink-0', 'w-5 h-5')}
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-white leading-tight">${escapeHtml(item.nome)}</p>
                     <p class="text-xs text-primary-400 mt-0.5">R$ ${item.preco_unitario.toFixed(2).replace('.', ',')}</p>
@@ -364,6 +382,7 @@ function renderCart() {
     document.getElementById('cartCount').textContent = cart.reduce((s, i) => s + i.quantidade, 0);
     document.getElementById('btnFinalizar').disabled = false;
     updateTotals();
+    lucide.createIcons();
 }
 
 function updateTotals() {

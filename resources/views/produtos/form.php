@@ -90,7 +90,7 @@ $composicaoRows = !empty($composicao)
                     <i data-lucide="info" class="w-4 h-4 text-primary-400"></i>
                     <strong class="text-white">Cálculo automático de preço</strong>
                 </p>
-                <p class="text-gray-400 text-xs">Informe o custo, mão de obra e taxas. Depois ajuste a margem de lucro para calcular o preço de venda automaticamente. Ou informe o preço de venda diretamente.</p>
+                <p class="text-gray-400 text-xs">Informe o custo, mão de obra, custos fixos e taxas. Depois ajuste a margem de lucro para calcular o preço de venda automaticamente. Ou informe o preço de venda diretamente.</p>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -129,27 +129,72 @@ $composicaoRows = !empty($composicao)
                            oninput="calcularVenda()"
                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
                 </div>
+
+                <div class="md:col-span-2 border-t border-white/10 pt-5">
+                    <div class="mb-4">
+                        <p class="text-xs font-semibold text-gray-300 uppercase tracking-wider">Custos fixos por venda</p>
+                        <p class="text-xs text-gray-500 mt-1">Energia, água, aluguel e gás entram no cálculo do preço de venda.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-2">Energia (R$)</label>
+                            <input type="text" id="custo_energia_valor" name="custo_energia_valor"
+                                   value="<?= number_format($produto['custo_energia_valor'] ?? 0, 2, '.', '') ?>"
+                                   placeholder="0.00"
+                                   oninput="calcularVenda()"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-2">Água (R$)</label>
+                            <input type="text" id="custo_agua_valor" name="custo_agua_valor"
+                                   value="<?= number_format($produto['custo_agua_valor'] ?? 0, 2, '.', '') ?>"
+                                   placeholder="0.00"
+                                   oninput="calcularVenda()"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-2">Aluguel (R$)</label>
+                            <input type="text" id="custo_aluguel_valor" name="custo_aluguel_valor"
+                                   value="<?= number_format($produto['custo_aluguel_valor'] ?? 0, 2, '.', '') ?>"
+                                   placeholder="0.00"
+                                   oninput="calcularVenda()"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-gray-400 mb-2">Gás (R$)</label>
+                            <input type="text" id="custo_gas_valor" name="custo_gas_valor"
+                                   value="<?= number_format($produto['custo_gas_valor'] ?? 0, 2, '.', '') ?>"
+                                   placeholder="0.00"
+                                   oninput="calcularVenda()"
+                                   class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                        </div>
+                    </div>
+                </div>
                 
                 <div class="space-y-3">
                     <label class="block text-xs font-medium text-gray-400">Margem de Lucro (%)</label>
                     
                     <div class="flex items-center gap-2">
-                        <button type="button" onclick="adjustMargem(-0.1)" 
+                        <button type="button" onclick="adjustMargem(-0.01)"
                                 class="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all">
                             <i data-lucide="minus" class="w-4 h-4"></i>
                         </button>
                         
                         <div class="relative flex-1">
-                            <input type="number" id="percent_lucro" name="percent_lucro" step="0.1"
-                                   value="<?= number_format($produto['percent_lucro'] ?? 0, 1, '.', '') ?>"
-                                   placeholder="0.0"
+                            <input type="number" id="percent_lucro" name="percent_lucro" step="0.001" min="0" max="100"
+                                   value="<?= number_format($produto['percent_lucro'] ?? 0, 3, '.', '') ?>"
+                                   placeholder="0.000"
                                    class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                    oninput="syncToRange(this.value); calcularVenda()"
                                    onwheel="handleMouseWheel(event)">
                             <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
                         </div>
 
-                        <button type="button" onclick="adjustMargem(0.1)" 
+                        <button type="button" onclick="adjustMargem(0.01)"
                                 class="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 active:scale-95 transition-all">
                             <i data-lucide="plus" class="w-4 h-4"></i>
                         </button>
@@ -157,8 +202,8 @@ $composicaoRows = !empty($composicao)
 
                     <!-- Mini Scroll / Slider -->
                     <div class="px-1">
-                        <input type="range" id="percent_lucro_range" min="0" max="100" step="0.1" 
-                               value="<?= number_format($produto['percent_lucro'] ?? 0, 1, '.', '') ?>"
+                        <input type="range" id="percent_lucro_range" min="0" max="100" step="0.001"
+                               value="<?= number_format($produto['percent_lucro'] ?? 0, 3, '.', '') ?>"
                                class="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary-500 hover:accent-primary-400 transition-all"
                                oninput="syncFromRange(this.value)">
                         <div class="flex justify-between mt-1 text-[10px] text-gray-600 uppercase tracking-tighter">
@@ -395,7 +440,7 @@ function adjustMargem(delta) {
     const input = document.getElementById('percent_lucro');
     let val = parseFloat(input.value) || 0;
     val = Math.max(0, Math.min(100, (val + delta)));
-    input.value = val.toFixed(1);
+    input.value = val.toFixed(3);
     syncToRange(input.value);
     calcularVenda();
 }
@@ -413,7 +458,7 @@ function syncFromRange(val) {
 function handleMouseWheel(e) {
     if (document.activeElement === e.target) {
         e.preventDefault();
-        const delta = e.deltaY < 0 ? 0.1 : -0.1;
+        const delta = e.deltaY < 0 ? 0.01 : -0.01;
         adjustMargem(delta);
     }
 }
@@ -440,17 +485,25 @@ function composicaoCusto() {
     return total;
 }
 
+function custosFixosTotal() {
+    return decimalValue('custo_energia_valor')
+        + decimalValue('custo_agua_valor')
+        + decimalValue('custo_aluguel_valor')
+        + decimalValue('custo_gas_valor');
+}
+
 function calcularVenda() {
     const custoBase = decimalValue('preco_custo');
     const custoComposicao = composicaoCusto();
     const maoObra = decimalValue('mao_obra_valor');
+    const custosFixos = custosFixosTotal();
     const pct = decimalValue('percent_lucro');
     const taxaMaquininha = decimalValue('taxa_maquininha_percent');
     const taxaGoverno = decimalValue('taxa_governo_percent');
     const percentTotal = pct + taxaMaquininha + taxaGoverno;
-    const base = custoBase + custoComposicao + maoObra;
+    const base = custoBase + custoComposicao + maoObra + custosFixos;
     
-    if (base > 0 && percentTotal < 100 && (percentTotal > 0 || maoObra > 0 || custoComposicao > 0)) {
+    if (base > 0 && percentTotal < 100 && (percentTotal > 0 || maoObra > 0 || custosFixos > 0 || custoComposicao > 0)) {
         const venda = base / (1 - percentTotal / 100);
         document.getElementById('preco_venda').value = venda.toFixed(2);
         
@@ -460,7 +513,8 @@ function calcularVenda() {
         document.getElementById('lucro-valor').textContent = 
             'R$ ' + lucro.toFixed(2).replace('.', ',') + ' de lucro, R$ ' +
             taxas.toFixed(2).replace('.', ',') + ' de taxas e R$ ' +
-            maoObra.toFixed(2).replace('.', ',') + ' de mao de obra';
+            maoObra.toFixed(2).replace('.', ',') + ' de mão de obra, R$ ' +
+            custosFixos.toFixed(2).replace('.', ',') + ' de custos fixos';
     } else if (percentTotal >= 100) {
         document.getElementById('lucro-preview').classList.remove('hidden');
         document.getElementById('lucro-valor').textContent = 'Lucro + taxas precisa ser menor que 100%';
@@ -472,14 +526,15 @@ document.getElementById('preco_venda').addEventListener('input', function() {
     const custoBase = decimalValue('preco_custo');
     const custoComposicao = composicaoCusto();
     const maoObra = decimalValue('mao_obra_valor');
+    const custosFixos = custosFixosTotal();
     const taxaMaquininha = decimalValue('taxa_maquininha_percent');
     const taxaGoverno = decimalValue('taxa_governo_percent');
     const venda = parseFloat(String(this.value || '0').replace(',', '.')) || 0;
-    const base = custoBase + custoComposicao + maoObra;
+    const base = custoBase + custoComposicao + maoObra + custosFixos;
 
     if (base > 0 && venda > 0) {
         const pct = Math.max(0, (((venda - base) / venda) * 100) - taxaMaquininha - taxaGoverno);
-        const pctFixed = pct.toFixed(1);
+        const pctFixed = pct.toFixed(3);
         document.getElementById('percent_lucro').value = pctFixed;
         syncToRange(pctFixed);
         
