@@ -74,15 +74,21 @@ class VendaService
 
             // Inserir itens
             foreach ($itens as $item) {
+                $produto = $this->produtoModel->findById((int)$item['produto_id']);
+                if (!$produto) {
+                    throw new \RuntimeException('Produto nao encontrado.');
+                }
+
                 $this->vendaModel->addItem(
                     $vendaId,
-                    $item['produto_id'],
+                    (int)$item['produto_id'],
                     $item['quantidade'],
-                    $item['preco_unitario']
+                    $item['preco_unitario'],
+                    0,
+                    $produto['nome']
                 );
 
                 // Baixar estoque
-                $produto = $this->produtoModel->findById($item['produto_id']);
                 if ($produto && $produto['controla_estoque']) {
                     $this->produtoModel->decrementarEstoque($item['produto_id'], $item['quantidade']);
                     $this->estoque->registrar([
@@ -157,19 +163,23 @@ class VendaService
             ]);
 
             foreach ($itens as $item) {
+                $produtoId = !empty($item['produto_id']) ? (int)$item['produto_id'] : null;
+
                 $this->vendaModel->addItem(
                     $vendaId,
-                    $item['produto_id'],
+                    $produtoId,
                     $item['quantidade'],
-                    $item['preco_unitario']
+                    $item['preco_unitario'],
+                    0,
+                    $item['produto_nome'] ?? null
                 );
 
                 // Baixar estoque
-                $produto = $this->produtoModel->findById($item['produto_id']);
+                $produto = $produtoId ? $this->produtoModel->findById($produtoId) : null;
                 if ($produto && $produto['controla_estoque']) {
-                    $this->produtoModel->decrementarEstoque($item['produto_id'], $item['quantidade']);
+                    $this->produtoModel->decrementarEstoque($produtoId, $item['quantidade']);
                     $this->estoque->registrar([
-                        'produto_id'      => $item['produto_id'],
+                        'produto_id'      => $produtoId,
                         'tipo'            => 'saida',
                         'quantidade'      => $item['quantidade'],
                         'valor_unitario'  => $item['preco_unitario'],

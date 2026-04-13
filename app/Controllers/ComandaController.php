@@ -96,7 +96,7 @@ class ComandaController extends Controller
             return;
         }
 
-        $this->comanda->addItem((int)$id, $produtoId, $quantidade, $produto['preco_venda'], $observacao);
+        $this->comanda->addItem((int)$id, $produtoId, $quantidade, $produto['preco_venda'], $observacao, $produto['nome'], $produto['unidade']);
         $this->flash('success', 'Item adicionado!');
         $this->redirect("/comandas/{$id}");
     }

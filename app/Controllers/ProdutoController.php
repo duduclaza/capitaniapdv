@@ -168,16 +168,9 @@ class ProdutoController extends Controller
             return;
         }
 
-        if ($this->produto->possuiVinculos($produtoId)) {
-            $this->produto->inativar($produtoId);
-            $this->flash('success', 'Produto possui historico e foi inativado.');
-            $this->redirect('/produtos');
-            return;
-        }
-
         try {
             $this->produto->delete($produtoId);
-            $this->flash('success', 'Produto removido.');
+            $this->flash('success', 'Produto excluido.');
         } catch (\PDOException $e) {
             // 23000 = SQLSTATE integrity constraint violation
             // 1451 = MySQL/MariaDB FK constraint fails
@@ -191,8 +184,7 @@ class ProdutoController extends Controller
                 throw $e;
             }
 
-            $this->produto->inativar($produtoId);
-            $this->flash('success', 'Produto possui historico e foi inativado.');
+            $this->flash('error', 'Nao foi possivel excluir. Rode a migration de exclusao real de produtos no banco.');
         }
 
         $this->redirect('/produtos');

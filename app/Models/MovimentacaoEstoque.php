@@ -10,6 +10,11 @@ class MovimentacaoEstoque extends Model
 
     public function registrar(array $data): int
     {
+        if (!array_key_exists('produto_nome', $data) && !empty($data['produto_id'])) {
+            $produto = $this->rawOne("SELECT nome FROM produtos WHERE id = ?", [(int)$data['produto_id']]);
+            $data['produto_nome'] = $produto['nome'] ?? null;
+        }
+
         $data['created_at'] = now();
         return $this->insert($data);
     }
@@ -28,9 +33,11 @@ class MovimentacaoEstoque extends Model
 
     public function getHistoricoGeral(string $dataInicio = '', string $dataFim = ''): array
     {
-        $sql = "SELECT me.*, p.nome AS produto_nome, u.nome AS usuario_nome
+        $sql = "SELECT me.*,
+                       COALESCE(me.produto_nome, p.nome, 'Produto excluido') AS produto_nome,
+                       u.nome AS usuario_nome
                 FROM movimentacoes_estoque me
-                JOIN produtos p ON p.id = me.produto_id
+                LEFT JOIN produtos p ON p.id = me.produto_id
                 LEFT JOIN usuarios u ON u.id = me.usuario_id";
 
         $params = [];

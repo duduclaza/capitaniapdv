@@ -28,9 +28,11 @@ class Venda extends Model
     public function getItens(int $vendaId): array
     {
         return $this->raw(
-            "SELECT vi.*, p.nome AS produto_nome
+            "SELECT vi.*,
+                    COALESCE(vi.produto_nome, p.nome, 'Produto excluido') AS produto_nome,
+                    COALESCE(vi.produto_nome, p.nome, 'Produto excluido') AS nome
              FROM venda_itens vi
-             JOIN produtos p ON p.id = vi.produto_id
+             LEFT JOIN produtos p ON p.id = vi.produto_id
              WHERE vi.venda_id = ?",
             [$vendaId]
         );
@@ -83,13 +85,13 @@ class Venda extends Model
         );
     }
 
-    public function addItem(int $vendaId, int $produtoId, float $quantidade, float $preco, float $desconto = 0): int
+    public function addItem(int $vendaId, ?int $produtoId, float $quantidade, float $preco, float $desconto = 0, ?string $produtoNome = null): int
     {
         $totalItem = ($quantidade * $preco) - $desconto;
         $this->rawExec(
-            "INSERT INTO venda_itens (venda_id, produto_id, quantidade, preco_unitario, desconto_item, total_item)
-             VALUES (?, ?, ?, ?, ?, ?)",
-            [$vendaId, $produtoId, $quantidade, $preco, $desconto, $totalItem]
+            "INSERT INTO venda_itens (venda_id, produto_id, produto_nome, quantidade, preco_unitario, desconto_item, total_item)
+             VALUES (?, ?, ?, ?, ?, ?, ?)",
+            [$vendaId, $produtoId, $produtoNome, $quantidade, $preco, $desconto, $totalItem]
         );
         return (int) $this->db->lastInsertId();
     }

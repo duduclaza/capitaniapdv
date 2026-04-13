@@ -85,12 +85,15 @@ class Produto extends Model
     public function getMaisVendidos(string $dataInicio, string $dataFim, int $limit = 10): array
     {
         return $this->raw(
-            "SELECT p.id, p.nome, SUM(vi.quantidade) as total_vendido, SUM(vi.total_item) as total_faturado
+            "SELECT COALESCE(MAX(p.id), 0) AS id,
+                    COALESCE(vi.produto_nome, p.nome, 'Produto excluido') AS nome,
+                    SUM(vi.quantidade) as total_vendido,
+                    SUM(vi.total_item) as total_faturado
              FROM venda_itens vi
-             JOIN produtos p ON p.id = vi.produto_id
+             LEFT JOIN produtos p ON p.id = vi.produto_id
              JOIN vendas v ON v.id = vi.venda_id
              WHERE v.status = 'paga' AND DATE(v.created_at) BETWEEN ? AND ?
-             GROUP BY p.id, p.nome
+             GROUP BY COALESCE(vi.produto_nome, p.nome, 'Produto excluido')
              ORDER BY total_vendido DESC
              LIMIT ?",
             [$dataInicio, $dataFim, $limit]

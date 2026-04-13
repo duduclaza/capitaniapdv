@@ -39,9 +39,11 @@ class Comanda extends Model
     public function getItens(int $comandaId): array
     {
         return $this->raw(
-            "SELECT ci.*, p.nome AS produto_nome, p.unidade
+            "SELECT ci.*,
+                    COALESCE(ci.produto_nome, p.nome, 'Produto excluido') AS produto_nome,
+                    COALESCE(ci.produto_unidade, p.unidade, 'un') AS unidade
              FROM comanda_itens ci
-             JOIN produtos p ON p.id = ci.produto_id
+             LEFT JOIN produtos p ON p.id = ci.produto_id
              WHERE ci.comanda_id = ?
              ORDER BY ci.created_at ASC",
             [$comandaId]
@@ -59,13 +61,13 @@ class Comanda extends Model
         );
     }
 
-    public function addItem(int $comandaId, int $produtoId, float $quantidade, float $precoUnitario, string $observacao = ''): int
+    public function addItem(int $comandaId, ?int $produtoId, float $quantidade, float $precoUnitario, string $observacao = '', ?string $produtoNome = null, ?string $produtoUnidade = null): int
     {
         $totalItem = $quantidade * $precoUnitario;
         $id = $this->rawScalar(
-            "INSERT INTO comanda_itens (comanda_id, produto_id, quantidade, preco_unitario, observacao, total_item, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, NOW())",
-            [$comandaId, $produtoId, $quantidade, $precoUnitario, $observacao, $totalItem]
+            "INSERT INTO comanda_itens (comanda_id, produto_id, produto_nome, produto_unidade, quantidade, preco_unitario, observacao, total_item, created_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+            [$comandaId, $produtoId, $produtoNome, $produtoUnidade, $quantidade, $precoUnitario, $observacao, $totalItem]
         );
         // Actually lastInsertId
         $id = $this->db->lastInsertId();

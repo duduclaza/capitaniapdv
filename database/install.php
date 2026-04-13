@@ -132,7 +132,9 @@ try {
 'comanda_itens' => "CREATE TABLE IF NOT EXISTS `comanda_itens` (
     `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `comanda_id`      INT UNSIGNED NOT NULL,
-    `produto_id`      INT UNSIGNED NOT NULL,
+    `produto_id`      INT UNSIGNED,
+    `produto_nome`    VARCHAR(200),
+    `produto_unidade` VARCHAR(20),
     `quantidade`      DECIMAL(10,3) NOT NULL DEFAULT 1.000,
     `preco_unitario`  DECIMAL(10,2) NOT NULL,
     `observacao`      TEXT,
@@ -140,7 +142,7 @@ try {
     `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_ci_comanda` FOREIGN KEY (`comanda_id`) REFERENCES `comandas`  (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_ci_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos`  (`id`)
+    CONSTRAINT `fk_ci_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos`  (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
 'vendas' => "CREATE TABLE IF NOT EXISTS `vendas` (
@@ -174,19 +176,21 @@ try {
 'venda_itens' => "CREATE TABLE IF NOT EXISTS `venda_itens` (
     `id`              INT UNSIGNED NOT NULL AUTO_INCREMENT,
     `venda_id`        INT UNSIGNED NOT NULL,
-    `produto_id`      INT UNSIGNED NOT NULL,
+    `produto_id`      INT UNSIGNED,
+    `produto_nome`    VARCHAR(200),
     `quantidade`      DECIMAL(10,3) NOT NULL,
     `preco_unitario`  DECIMAL(10,2) NOT NULL,
     `desconto_item`   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     `total_item`      DECIMAL(10,2) NOT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_vi_venda`   FOREIGN KEY (`venda_id`)   REFERENCES `vendas`   (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_vi_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`)
+    CONSTRAINT `fk_vi_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
 'movimentacoes_estoque' => "CREATE TABLE IF NOT EXISTS `movimentacoes_estoque` (
     `id`               INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    `produto_id`       INT UNSIGNED NOT NULL,
+    `produto_id`       INT UNSIGNED,
+    `produto_nome`     VARCHAR(200),
     `tipo`             ENUM('entrada','saida','ajuste','perda') NOT NULL,
     `quantidade`       DECIMAL(10,3) NOT NULL,
     `valor_unitario`   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
@@ -197,7 +201,7 @@ try {
     `created_at`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     INDEX `idx_produto` (`produto_id`),
-    CONSTRAINT `fk_me_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos`  (`id`),
+    CONSTRAINT `fk_me_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos`  (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_me_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
