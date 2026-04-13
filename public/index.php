@@ -27,5 +27,10 @@ if (empty($uri)) {
     $uri = '/';
 }
 
+// Normalize trailing slashes so /config/ resolves to the /config route.
+if ($uri !== '/') {
+    $uri = rtrim($uri, '/');
+}
+
 // Dispatch
 $router->dispatch($_SERVER['REQUEST_METHOD'], $uri);

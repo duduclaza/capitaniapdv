@@ -8,6 +8,10 @@ DirectoryIndex index.php
     # Block sensitive files
     RewriteRule ^\.env - [F,L]
     RewriteRule ^composer\.(json|lock) - [F,L]
+
+    # Public app route that conflicts with the protected /config directory
+    RewriteRule ^config(/.*)?$ public/index.php [L,QSA]
+
     RewriteRule ^(app|bootstrap|config|database|routes|storage|vendor)/ - [F,L]
 
     # Block hidden files (dot files except .htaccess)
