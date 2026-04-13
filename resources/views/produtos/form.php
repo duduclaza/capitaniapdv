@@ -90,10 +90,10 @@ $composicaoRows = !empty($composicao)
                     <i data-lucide="info" class="w-4 h-4 text-primary-400"></i>
                     <strong class="text-white">Cálculo automático de preço</strong>
                 </p>
-                <p class="text-gray-400 text-xs">Informe o custo e a margem de lucro desejada. O preço de venda será calculado automaticamente. Ou informe o preço de venda diretamente.</p>
+                <p class="text-gray-400 text-xs">Informe o custo, mão de obra e taxas. Depois ajuste a margem de lucro para calcular o preço de venda automaticamente. Ou informe o preço de venda diretamente.</p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-2">Preço de Custo (R$)</label>
                     <input type="text" id="preco_custo" name="preco_custo"
@@ -101,6 +101,33 @@ $composicaoRows = !empty($composicao)
                            placeholder="0.00"
                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors"
                            oninput="calcularVenda()">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Mão de obra por venda (R$)</label>
+                    <input type="text" id="mao_obra_valor" name="mao_obra_valor"
+                           value="<?= number_format($produto['mao_obra_valor'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           oninput="calcularVenda()"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa maquininha (%)</label>
+                    <input type="number" id="taxa_maquininha_percent" name="taxa_maquininha_percent" min="0" step="0.01"
+                           value="<?= number_format($produto['taxa_maquininha_percent'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           oninput="calcularVenda()"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa governo (%)</label>
+                    <input type="number" id="taxa_governo_percent" name="taxa_governo_percent" min="0" step="0.01"
+                           value="<?= number_format($produto['taxa_governo_percent'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           oninput="calcularVenda()"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
                 </div>
                 
                 <div class="space-y-3">
@@ -156,40 +183,6 @@ $composicaoRows = !empty($composicao)
             <!-- Lucro preview -->
             <div id="lucro-preview" class="hidden bg-white/3 rounded-xl p-3 text-center">
                 <p class="text-xs text-gray-400">Lucro estimado por unidade: <span id="lucro-valor" class="font-semibold text-emerald-400"></span></p>
-            </div>
-        </div>
-
-        <!-- Custos Operacionais -->
-        <div class="glass-card rounded-2xl p-6 space-y-5">
-            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-3">
-                Custos Operacionais
-            </h3>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Mao de obra por venda (R$)</label>
-                    <input type="text" id="mao_obra_valor" name="mao_obra_valor"
-                           value="<?= number_format($produto['mao_obra_valor'] ?? 0, 2, '.', '') ?>"
-                           placeholder="0.00"
-                           oninput="calcularVenda()"
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa maquininha (%)</label>
-                    <input type="number" id="taxa_maquininha_percent" name="taxa_maquininha_percent" min="0" step="0.01"
-                           value="<?= number_format($produto['taxa_maquininha_percent'] ?? 0, 2, '.', '') ?>"
-                           placeholder="0.00"
-                           oninput="calcularVenda()"
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa governo (%)</label>
-                    <input type="number" id="taxa_governo_percent" name="taxa_governo_percent" min="0" step="0.01"
-                           value="<?= number_format($produto['taxa_governo_percent'] ?? 0, 2, '.', '') ?>"
-                           placeholder="0.00"
-                           oninput="calcularVenda()"
-                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
-                </div>
             </div>
 
             <label class="flex items-center gap-3 cursor-pointer">
