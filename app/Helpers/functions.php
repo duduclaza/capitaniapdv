@@ -188,9 +188,18 @@ if (!function_exists('isActive')) {
 }
 
 if (!function_exists('percentToPrice')) {
-    function percentToPrice(float $cost, float $percentLucro): float
+    function percentToPrice(
+        float $cost,
+        float $percentLucro,
+        float $maoObraValor = 0,
+        float $taxaMaquininhaPercent = 0,
+        float $taxaGovernoPercent = 0
+    ): float
     {
-        if ($percentLucro >= 100) return $cost * 2;
-        return $cost / (1 - ($percentLucro / 100));
+        $base = $cost + $maoObraValor;
+        $percentTotal = $percentLucro + $taxaMaquininhaPercent + $taxaGovernoPercent;
+
+        if ($percentTotal >= 100) return $base * 2;
+        return $base / (1 - ($percentTotal / 100));
     }
 }

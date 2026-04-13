@@ -45,9 +45,29 @@ class ProdutoController extends Controller
         // Calcular preço de venda a partir do % lucro se informado
         $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
         $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
+        $maoObraValor = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $taxaMaquininhaPercent = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
+        $taxaGovernoPercent = $this->decimal($data['taxa_governo_percent'] ?? '0');
+        $custoComposicao = $this->custoComposicaoPost($_POST['componente_produto_id'] ?? [], $_POST['quantidade_componente'] ?? []);
+        $percentTotal = $percentLucro + $taxaMaquininhaPercent + $taxaGovernoPercent;
 
-        if ($percentLucro > 0 && $precoCusto > 0) {
-            $data['preco_venda'] = percentToPrice($precoCusto, $percentLucro);
+        if ($percentTotal >= 100) {
+            $this->flash('error', 'A soma de lucro e taxas deve ser menor que 100%.');
+            $this->redirect('/produtos/criar');
+            return;
+        }
+
+        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custoComposicao > 0)
+            && ($precoCusto + $custoComposicao + $maoObraValor) > 0;
+
+        if ($deveCalcularPreco) {
+            $data['preco_venda'] = percentToPrice(
+                $precoCusto + $custoComposicao,
+                $percentLucro,
+                $maoObraValor,
+                $taxaMaquininhaPercent,
+                $taxaGovernoPercent
+            );
         }
 
         $data['preco_custo']              = $precoCusto;
@@ -55,9 +75,9 @@ class ProdutoController extends Controller
         $data['estoque_atual']            = $this->decimal($data['estoque_atual'] ?? '0');
         $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
         $data['percent_lucro']            = $percentLucro;
-        $data['mao_obra_valor']           = $this->decimal($data['mao_obra_valor'] ?? '0');
-        $data['taxa_maquininha_percent']  = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
-        $data['taxa_governo_percent']     = $this->decimal($data['taxa_governo_percent'] ?? '0');
+        $data['mao_obra_valor']           = $maoObraValor;
+        $data['taxa_maquininha_percent']  = $taxaMaquininhaPercent;
+        $data['taxa_governo_percent']     = $taxaGovernoPercent;
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;
         $data['requer_preparo']   = isset($_POST['requer_preparo']) ? 1 : 0;
         $data['ativo']            = isset($_POST['ativo']) ? 1 : 0;
@@ -112,15 +132,7 @@ class ProdutoController extends Controller
             return;
         }
 
-        // Calcula % de lucro atual
-        if ($produto['preco_custo'] > 0 && $produto['preco_venda'] > 0) {
-            $produto['percent_lucro'] = round(
-                (($produto['preco_venda'] - $produto['preco_custo']) / $produto['preco_venda']) * 100,
-                2
-            );
-        } else {
-            $produto['percent_lucro'] = 0;
-        }
+        $produto['percent_lucro'] = (float)($produto['percent_lucro'] ?? 0);
 
         $categorias = $this->categoria->findAtivas();
         $produtosComposicao = $this->produto->findAllForComposition((int)$id);
@@ -148,9 +160,29 @@ class ProdutoController extends Controller
 
         $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
         $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
+        $maoObraValor = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $taxaMaquininhaPercent = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
+        $taxaGovernoPercent = $this->decimal($data['taxa_governo_percent'] ?? '0');
+        $custoComposicao = $this->custoComposicaoPost($_POST['componente_produto_id'] ?? [], $_POST['quantidade_componente'] ?? [], (int)$id);
+        $percentTotal = $percentLucro + $taxaMaquininhaPercent + $taxaGovernoPercent;
 
-        if ($percentLucro > 0 && $precoCusto > 0) {
-            $data['preco_venda'] = percentToPrice($precoCusto, $percentLucro);
+        if ($percentTotal >= 100) {
+            $this->flash('error', 'A soma de lucro e taxas deve ser menor que 100%.');
+            $this->redirect("/produtos/{$id}/editar");
+            return;
+        }
+
+        $deveCalcularPreco = ($percentTotal > 0 || $maoObraValor > 0 || $custoComposicao > 0)
+            && ($precoCusto + $custoComposicao + $maoObraValor) > 0;
+
+        if ($deveCalcularPreco) {
+            $data['preco_venda'] = percentToPrice(
+                $precoCusto + $custoComposicao,
+                $percentLucro,
+                $maoObraValor,
+                $taxaMaquininhaPercent,
+                $taxaGovernoPercent
+            );
         }
 
         $data['preco_custo']              = $precoCusto;
@@ -158,9 +190,9 @@ class ProdutoController extends Controller
         $data['estoque_atual']            = $this->decimal($data['estoque_atual'] ?? '0');
         $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
         $data['percent_lucro']            = $percentLucro;
-        $data['mao_obra_valor']           = $this->decimal($data['mao_obra_valor'] ?? '0');
-        $data['taxa_maquininha_percent']  = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
-        $data['taxa_governo_percent']     = $this->decimal($data['taxa_governo_percent'] ?? '0');
+        $data['mao_obra_valor']           = $maoObraValor;
+        $data['taxa_maquininha_percent']  = $taxaMaquininhaPercent;
+        $data['taxa_governo_percent']     = $taxaGovernoPercent;
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;
         $data['requer_preparo']   = isset($_POST['requer_preparo']) ? 1 : 0;
         $data['ativo']            = isset($_POST['ativo']) ? 1 : 0;
@@ -256,5 +288,26 @@ class ProdutoController extends Controller
     private function decimal(mixed $value): float
     {
         return (float)str_replace(',', '.', (string)($value ?? '0'));
+    }
+
+    private function custoComposicaoPost(array $componentes, array $quantidades, ?int $produtoId = null): float
+    {
+        $total = 0.0;
+
+        foreach ($componentes as $index => $componenteId) {
+            $componenteId = (int)$componenteId;
+            $quantidade = $this->decimal($quantidades[$index] ?? '0');
+
+            if ($componenteId <= 0 || $quantidade <= 0 || $componenteId === $produtoId) {
+                continue;
+            }
+
+            $componente = $this->produto->findById($componenteId);
+            if ($componente) {
+                $total += (float)$componente['preco_custo'] * $quantidade;
+            }
+        }
+
+        return $total;
     }
 }

@@ -168,23 +168,26 @@ $composicaoRows = !empty($composicao)
             <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-2">Mao de obra por venda (R$)</label>
-                    <input type="text" name="mao_obra_valor"
+                    <input type="text" id="mao_obra_valor" name="mao_obra_valor"
                            value="<?= number_format($produto['mao_obra_valor'] ?? 0, 2, '.', '') ?>"
                            placeholder="0.00"
+                           oninput="calcularVenda()"
                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-2">Taxa maquininha (%)</label>
-                    <input type="number" name="taxa_maquininha_percent" min="0" step="0.01"
+                    <input type="number" id="taxa_maquininha_percent" name="taxa_maquininha_percent" min="0" step="0.01"
                            value="<?= number_format($produto['taxa_maquininha_percent'] ?? 0, 2, '.', '') ?>"
                            placeholder="0.00"
+                           oninput="calcularVenda()"
                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-gray-400 mb-2">Taxa governo (%)</label>
-                    <input type="number" name="taxa_governo_percent" min="0" step="0.01"
+                    <input type="number" id="taxa_governo_percent" name="taxa_governo_percent" min="0" step="0.01"
                            value="<?= number_format($produto['taxa_governo_percent'] ?? 0, 2, '.', '') ?>"
                            placeholder="0.00"
+                           oninput="calcularVenda()"
                            class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
                 </div>
             </div>
@@ -219,7 +222,7 @@ $composicaoRows = !empty($composicao)
                             class="px-4 py-3 bg-dark-900 border border-white/10 rounded-xl text-white focus:outline-none focus:border-primary-500 text-sm transition-colors">
                         <option value="">Selecione o item</option>
                         <?php foreach ($produtosComposicao as $pComp): ?>
-                        <option value="<?= $pComp['id'] ?>" <?= ($item['componente_produto_id'] ?? '') == $pComp['id'] ? 'selected' : '' ?>>
+                        <option value="<?= $pComp['id'] ?>" data-cost="<?= e($pComp['preco_custo']) ?>" <?= ($item['componente_produto_id'] ?? '') == $pComp['id'] ? 'selected' : '' ?>>
                             <?= e($pComp['nome']) ?> - <?= formatMoney((float)$pComp['preco_custo']) ?>
                         </option>
                         <?php endforeach; ?>
@@ -336,7 +339,7 @@ $composicaoRows = !empty($composicao)
                 class="px-4 py-3 bg-dark-900 border border-white/10 rounded-xl text-white focus:outline-none focus:border-primary-500 text-sm transition-colors">
             <option value="">Selecione o item</option>
             <?php foreach ($produtosComposicao as $pComp): ?>
-            <option value="<?= $pComp['id'] ?>"><?= e($pComp['nome']) ?> - <?= formatMoney((float)$pComp['preco_custo']) ?></option>
+            <option value="<?= $pComp['id'] ?>" data-cost="<?= e($pComp['preco_custo']) ?>"><?= e($pComp['nome']) ?> - <?= formatMoney((float)$pComp['preco_custo']) ?></option>
             <?php endforeach; ?>
         </select>
         <input type="text" name="quantidade_componente[]" value="1.000" placeholder="Qtd"
@@ -353,6 +356,7 @@ function addComposicaoRow() {
     const template = document.getElementById('composicaoTemplate');
     document.getElementById('composicaoRows').appendChild(template.content.cloneNode(true));
     lucide.createIcons();
+    calcularVenda();
 }
 
 function removeComposicaoRow(button) {
@@ -362,11 +366,16 @@ function removeComposicaoRow(button) {
     if (rows.length <= 1) {
         row.querySelector('select').value = '';
         row.querySelector('input').value = '1.000';
+        calcularVenda();
         return;
     }
 
     row.remove();
+    calcularVenda();
 }
+
+document.getElementById('composicaoRows')?.addEventListener('input', calcularVenda);
+document.getElementById('composicaoRows')?.addEventListener('change', calcularVenda);
 
 // Image preview
 document.getElementById('imgInput')?.addEventListener('change', function(e) {
@@ -417,35 +426,71 @@ function handleMouseWheel(e) {
 }
 
 // Price calculator
+function decimalValue(id) {
+    const el = document.getElementById(id);
+    if (!el) return 0;
+    return parseFloat(String(el.value || '0').replace(',', '.')) || 0;
+}
+
+function composicaoCusto() {
+    let total = 0;
+
+    document.querySelectorAll('.composicao-row').forEach(row => {
+        const select = row.querySelector('select');
+        const qtdInput = row.querySelector('input[name="quantidade_componente[]"]');
+        const selected = select?.selectedOptions?.[0];
+        const custo = parseFloat(selected?.dataset?.cost || '0') || 0;
+        const qtd = parseFloat(String(qtdInput?.value || '0').replace(',', '.')) || 0;
+        total += custo * qtd;
+    });
+
+    return total;
+}
+
 function calcularVenda() {
-    const custo = parseFloat(document.getElementById('preco_custo').value) || 0;
-    const pct   = parseFloat(document.getElementById('percent_lucro').value) || 0;
+    const custoBase = decimalValue('preco_custo');
+    const custoComposicao = composicaoCusto();
+    const maoObra = decimalValue('mao_obra_valor');
+    const pct = decimalValue('percent_lucro');
+    const taxaMaquininha = decimalValue('taxa_maquininha_percent');
+    const taxaGoverno = decimalValue('taxa_governo_percent');
+    const percentTotal = pct + taxaMaquininha + taxaGoverno;
+    const base = custoBase + custoComposicao + maoObra;
     
-    if (custo > 0 && pct > 0 && pct < 100) {
-        const venda = custo / (1 - pct / 100);
+    if (base > 0 && percentTotal < 100 && (percentTotal > 0 || maoObra > 0 || custoComposicao > 0)) {
+        const venda = base / (1 - percentTotal / 100);
         document.getElementById('preco_venda').value = venda.toFixed(2);
         
-        const lucro = venda - custo;
+        const lucro = venda * (pct / 100);
+        const taxas = venda * ((taxaMaquininha + taxaGoverno) / 100);
         document.getElementById('lucro-preview').classList.remove('hidden');
         document.getElementById('lucro-valor').textContent = 
-            'R$ ' + lucro.toFixed(2).replace('.', ',') + ' (' + pct.toFixed(1) + '% sobre venda)';
-    } else if (pct >= 100) {
+            'R$ ' + lucro.toFixed(2).replace('.', ',') + ' de lucro, R$ ' +
+            taxas.toFixed(2).replace('.', ',') + ' de taxas e R$ ' +
+            maoObra.toFixed(2).replace('.', ',') + ' de mao de obra';
+    } else if (percentTotal >= 100) {
         document.getElementById('lucro-preview').classList.remove('hidden');
-        document.getElementById('lucro-valor').textContent = 'Margem inválida (>= 100%)';
+        document.getElementById('lucro-valor').textContent = 'Lucro + taxas precisa ser menor que 100%';
     }
 }
 
 // Also update % when venda is changed manually
 document.getElementById('preco_venda').addEventListener('input', function() {
-    const custo = parseFloat(document.getElementById('preco_custo').value) || 0;
-    const venda = parseFloat(this.value) || 0;
-    if (custo > 0 && venda > 0) {
-        const pct = ((venda - custo) / venda) * 100;
+    const custoBase = decimalValue('preco_custo');
+    const custoComposicao = composicaoCusto();
+    const maoObra = decimalValue('mao_obra_valor');
+    const taxaMaquininha = decimalValue('taxa_maquininha_percent');
+    const taxaGoverno = decimalValue('taxa_governo_percent');
+    const venda = parseFloat(String(this.value || '0').replace(',', '.')) || 0;
+    const base = custoBase + custoComposicao + maoObra;
+
+    if (base > 0 && venda > 0) {
+        const pct = Math.max(0, (((venda - base) / venda) * 100) - taxaMaquininha - taxaGoverno);
         const pctFixed = pct.toFixed(1);
         document.getElementById('percent_lucro').value = pctFixed;
         syncToRange(pctFixed);
         
-        const lucro = venda - custo;
+        const lucro = venda * (pct / 100);
         document.getElementById('lucro-preview').classList.remove('hidden');
         document.getElementById('lucro-valor').textContent = 
             'R$ ' + lucro.toFixed(2).replace('.', ',') + ' (' + pctFixed + '% sobre venda)';
