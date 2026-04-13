@@ -9,13 +9,6 @@
             <p class="text-sm text-gray-400"><?= count($produtos) ?> produtos cadastrados</p>
         </div>
         <div class="flex items-center gap-3">
-            <!-- Botão Sincronizar todos com Stripe -->
-            <form method="POST" action="/produtos/sincronizar-stripe" onsubmit="return confirm('Sincronizar todos os produtos sem ID Stripe com o Stripe?')">
-                <?= csrf_field() ?>
-                <button type="submit" class="flex items-center gap-2 text-sm text-gray-300 hover:text-white border border-purple-500/40 hover:border-purple-400 bg-purple-900/20 px-4 py-2.5 rounded-xl transition-all">
-                    ⚡ Sincronizar com Stripe
-                </button>
-            </form>
             <a href="/produtos/criar" class="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold px-4 py-2.5 rounded-xl transition-all">
                 <i data-lucide="plus" class="w-4 h-4"></i> Novo Produto
             </a>
@@ -37,14 +30,13 @@
                         <th class="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-3">% Lucro</th>
                         <th class="text-right text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-3">Estoque</th>
                         <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-3">Status</th>
-                        <th class="text-center text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 py-3">Stripe</th>
                         <th class="px-4 py-3"></th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/5">
                     <?php if (empty($produtos)): ?>
                     <tr>
-                        <td colspan="10" class="text-center py-12 text-gray-500">
+                        <td colspan="9" class="text-center py-12 text-gray-500">
                             <i data-lucide="package" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
                             <p>Nenhum produto cadastrado</p>
                         </td>
@@ -103,18 +95,6 @@
                             <span class="inline-block text-xs font-medium px-2 py-0.5 rounded-full <?= $p['ativo'] ? 'bg-emerald-900/40 text-emerald-400' : 'bg-gray-700 text-gray-400' ?>">
                                 <?= $p['ativo'] ? 'Ativo' : 'Inativo' ?>
                             </span>
-                        </td>
-                        <!-- Stripe Status -->
-                        <td class="px-4 py-3 text-center">
-                            <?php if (!empty($p['stripe_product_id'])): ?>
-                                <span title="<?= e($p['stripe_product_id']) ?>" 
-                                      class="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full bg-purple-900/40 text-purple-300">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400 inline-block"></span>
-                                    Stripe
-                                </span>
-                            <?php else: ?>
-                                <span class="text-xs text-gray-600">—</span>
-                            <?php endif; ?>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center gap-2 justify-end">

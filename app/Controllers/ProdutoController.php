@@ -179,7 +179,15 @@ class ProdutoController extends Controller
             $this->produto->delete($produtoId);
             $this->flash('success', 'Produto removido.');
         } catch (\PDOException $e) {
-            if ((string)$e->getCode() !== '23000') {
+            // 23000 = SQLSTATE integrity constraint violation
+            // 1451 = MySQL/MariaDB FK constraint fails
+            $code = (string)$e->getCode();
+            $msg  = $e->getMessage();
+            $isFkError = $code === '23000'
+                || str_contains($msg, '1451')
+                || str_contains($msg, 'foreign key constraint');
+
+            if (!$isFkError) {
                 throw $e;
             }
 

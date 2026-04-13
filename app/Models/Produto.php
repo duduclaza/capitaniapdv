@@ -99,13 +99,24 @@ class Produto extends Model
 
     public function possuiVinculos(int $id): bool
     {
-        return (bool) $this->rawScalar(
-            "SELECT
-                EXISTS(SELECT 1 FROM comanda_itens WHERE produto_id = ? LIMIT 1)
-                OR EXISTS(SELECT 1 FROM venda_itens WHERE produto_id = ? LIMIT 1)
-                OR EXISTS(SELECT 1 FROM movimentacoes_estoque WHERE produto_id = ? LIMIT 1)",
-            [$id, $id, $id]
+        $emComandas = (int) $this->rawScalar(
+            "SELECT COUNT(*) FROM comanda_itens WHERE produto_id = ? LIMIT 1",
+            [$id]
         );
+        if ($emComandas > 0) return true;
+
+        $emVendas = (int) $this->rawScalar(
+            "SELECT COUNT(*) FROM venda_itens WHERE produto_id = ? LIMIT 1",
+            [$id]
+        );
+        if ($emVendas > 0) return true;
+
+        $emMovimentacoes = (int) $this->rawScalar(
+            "SELECT COUNT(*) FROM movimentacoes_estoque WHERE produto_id = ? LIMIT 1",
+            [$id]
+        );
+
+        return $emMovimentacoes > 0;
     }
 
     public function inativar(int $id): bool
