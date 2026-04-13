@@ -121,6 +121,11 @@ $router->get('/relatorios/exportar-vendas', [RelatorioController::class, 'export
 
 // --- Configurações ---
 $router->get('/config', [ConfigController::class, 'index'], [AuthMiddleware::class]);
+$router->post('/config/funcionarios', [ConfigController::class, 'storeFuncionario'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/config/funcionarios/{id}/atualizar', [ConfigController::class, 'updateFuncionario'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/config/funcionarios/{id}/status', [ConfigController::class, 'toggleFuncionario'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/config/funcionarios/baixa', [ConfigController::class, 'baixarPagamentoFuncionario'], [AuthMiddleware::class, AdminMiddleware::class]);
+$router->post('/config/zerar-vendas', [ConfigController::class, 'zerarVendas'], [AuthMiddleware::class, AdminMiddleware::class]);
 $router->get('/config/mercadopago/auth', [ConfigController::class, 'mercadoPagoConnect'], [AuthMiddleware::class]);
 $router->get('/config/mercadopago/callback', [ConfigController::class, 'mercadoPagoCallback'], [AuthMiddleware::class]);
 $router->post('/config/mercadopago/disconnect', [ConfigController::class, 'mercadoPagoDisconnect'], [AuthMiddleware::class]);

@@ -149,6 +149,17 @@ class Venda extends Model
         );
     }
 
+    public function getTotalMaoObra(string $dataInicio, string $dataFim): float
+    {
+        return (float)$this->rawScalar(
+            "SELECT COALESCE(SUM(vi.quantidade * COALESCE(vi.mao_obra_unitaria, 0)), 0)
+             FROM venda_itens vi
+             JOIN vendas v ON v.id = vi.venda_id
+             WHERE v.status = 'paga' AND DATE(v.created_at) BETWEEN ? AND ?",
+            [$dataInicio, $dataFim]
+        );
+    }
+
     public function getFaturamentoPorDia(string $dataInicio, string $dataFim): array
     {
         return $this->raw(
