@@ -85,15 +85,68 @@ class Venda extends Model
         );
     }
 
-    public function addItem(int $vendaId, ?int $produtoId, float $quantidade, float $preco, float $desconto = 0, ?string $produtoNome = null): int
+    public function addItem(
+        int $vendaId,
+        ?int $produtoId,
+        float $quantidade,
+        float $preco,
+        float $desconto = 0,
+        ?string $produtoNome = null,
+        float $custoUnitario = 0,
+        float $maoObraUnitaria = 0,
+        float $taxaMaquininhaPercent = 0,
+        float $taxaGovernoPercent = 0
+    ): int
     {
         $totalItem = ($quantidade * $preco) - $desconto;
         $this->rawExec(
-            "INSERT INTO venda_itens (venda_id, produto_id, produto_nome, quantidade, preco_unitario, desconto_item, total_item)
-             VALUES (?, ?, ?, ?, ?, ?, ?)",
-            [$vendaId, $produtoId, $produtoNome, $quantidade, $preco, $desconto, $totalItem]
+            "INSERT INTO venda_itens (
+                venda_id, produto_id, produto_nome, quantidade, preco_unitario, desconto_item, total_item,
+                custo_unitario, mao_obra_unitaria, taxa_maquininha_percent, taxa_governo_percent
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            [
+                $vendaId,
+                $produtoId,
+                $produtoNome,
+                $quantidade,
+                $preco,
+                $desconto,
+                $totalItem,
+                $custoUnitario,
+                $maoObraUnitaria,
+                $taxaMaquininhaPercent,
+                $taxaGovernoPercent,
+            ]
         );
         return (int) $this->db->lastInsertId();
+    }
+
+    public function getFechamentoSemanal(string $dataInicio, string $dataFim): array
+    {
+        return $this->raw(
+            "SELECT
+                COALESCE(vi.produto_nome, p.nome, 'Produto excluido') AS produto_nome,
+                SUM(vi.quantidade) AS quantidade,
+                SUM(vi.total_item) AS valor_recebido,
+                SUM(vi.quantidade * COALESCE(vi.custo_unitario, 0)) AS valor_custos,
+                SUM(vi.quantidade * COALESCE(vi.mao_obra_unitaria, 0)) AS valor_mao_obra,
+                SUM(vi.total_item * COALESCE(vi.taxa_maquininha_percent, 0) / 100) AS valor_taxa_maquininha,
+                SUM(vi.total_item * COALESCE(vi.taxa_governo_percent, 0) / 100) AS valor_taxa_governo,
+                SUM(
+                    vi.total_item
+                    - (vi.quantidade * COALESCE(vi.custo_unitario, 0))
+                    - (vi.quantidade * COALESCE(vi.mao_obra_unitaria, 0))
+                    - (vi.total_item * COALESCE(vi.taxa_maquininha_percent, 0) / 100)
+                    - (vi.total_item * COALESCE(vi.taxa_governo_percent, 0) / 100)
+                ) AS valor_lucro
+             FROM venda_itens vi
+             JOIN vendas v ON v.id = vi.venda_id
+             LEFT JOIN produtos p ON p.id = vi.produto_id
+             WHERE v.status = 'paga' AND DATE(v.created_at) BETWEEN ? AND ?
+             GROUP BY COALESCE(vi.produto_nome, p.nome, 'Produto excluido')
+             ORDER BY valor_recebido DESC",
+            [$dataInicio, $dataFim]
+        );
     }
 
     public function getFaturamentoPorDia(string $dataInicio, string $dataFim): array

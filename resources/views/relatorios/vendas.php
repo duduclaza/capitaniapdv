@@ -3,6 +3,7 @@
     <div class="flex items-center justify-between">
         <h2 class="text-lg font-bold text-white">Relatório de Vendas</h2>
         <div class="flex items-center gap-3">
+            <a href="/relatorios/fechamento-semanal" class="text-sm text-gray-400 hover:text-white transition-colors">Fechamento Semanal -></a>
             <a href="/relatorios/mais-vendidos" class="text-sm text-gray-400 hover:text-white transition-colors">Mais Vendidos →</a>
             <a href="/relatorios/estoque-baixo" class="text-sm text-gray-400 hover:text-white transition-colors">Estoque Baixo →</a>
         </div>

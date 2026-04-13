@@ -61,13 +61,41 @@ class Comanda extends Model
         );
     }
 
-    public function addItem(int $comandaId, ?int $produtoId, float $quantidade, float $precoUnitario, string $observacao = '', ?string $produtoNome = null, ?string $produtoUnidade = null): int
+    public function addItem(
+        int $comandaId,
+        ?int $produtoId,
+        float $quantidade,
+        float $precoUnitario,
+        string $observacao = '',
+        ?string $produtoNome = null,
+        ?string $produtoUnidade = null,
+        float $custoUnitario = 0,
+        float $maoObraUnitaria = 0,
+        float $taxaMaquininhaPercent = 0,
+        float $taxaGovernoPercent = 0
+    ): int
     {
         $totalItem = $quantidade * $precoUnitario;
         $id = $this->rawScalar(
-            "INSERT INTO comanda_itens (comanda_id, produto_id, produto_nome, produto_unidade, quantidade, preco_unitario, observacao, total_item, created_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())",
-            [$comandaId, $produtoId, $produtoNome, $produtoUnidade, $quantidade, $precoUnitario, $observacao, $totalItem]
+            "INSERT INTO comanda_itens (
+                comanda_id, produto_id, produto_nome, produto_unidade, quantidade, preco_unitario,
+                observacao, total_item, custo_unitario, mao_obra_unitaria, taxa_maquininha_percent,
+                taxa_governo_percent, created_at
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())",
+            [
+                $comandaId,
+                $produtoId,
+                $produtoNome,
+                $produtoUnidade,
+                $quantidade,
+                $precoUnitario,
+                $observacao,
+                $totalItem,
+                $custoUnitario,
+                $maoObraUnitaria,
+                $taxaMaquininhaPercent,
+                $taxaGovernoPercent,
+            ]
         );
         // Actually lastInsertId
         $id = $this->db->lastInsertId();

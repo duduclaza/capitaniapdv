@@ -26,7 +26,9 @@ class ProdutoController extends Controller
     public function create(): void
     {
         $categorias = $this->categoria->findAtivas();
-        $this->view('produtos/form', ['produto' => null, 'categorias' => $categorias]);
+        $produtosComposicao = $this->produto->findAllForComposition();
+        $composicao = [];
+        $this->view('produtos/form', compact('categorias', 'produtosComposicao', 'composicao') + ['produto' => null]);
     }
 
     public function store(): void
@@ -36,20 +38,28 @@ class ProdutoController extends Controller
         $data = $this->only([
             'categoria_id', 'nome', 'sku', 'codigo_barras', 'unidade',
             'preco_custo', 'preco_venda', 'percent_lucro',
+            'mao_obra_valor', 'taxa_maquininha_percent', 'taxa_governo_percent',
             'estoque_atual', 'estoque_minimo', 'controla_estoque', 'ativo'
         ]);
 
         // Calcular preço de venda a partir do % lucro se informado
-        if (!empty($data['percent_lucro']) && !empty($data['preco_custo'])) {
-            $data['preco_venda'] = percentToPrice((float)$data['preco_custo'], (float)$data['percent_lucro']);
+        $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
+        $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
+
+        if ($percentLucro > 0 && $precoCusto > 0) {
+            $data['preco_venda'] = percentToPrice($precoCusto, $percentLucro);
         }
 
-        $data['preco_custo']      = (float)str_replace(',', '.', $data['preco_custo'] ?? '0');
-        $data['preco_venda']      = (float)str_replace(',', '.', $data['preco_venda'] ?? '0');
-        $data['estoque_atual']    = (float)str_replace(',', '.', $data['estoque_atual'] ?? '0');
-        $data['estoque_minimo']   = (float)str_replace(',', '.', $data['estoque_minimo'] ?? '0');
-        $data['percent_lucro']    = (float)str_replace(',', '.', $data['percent_lucro'] ?? '0');
+        $data['preco_custo']              = $precoCusto;
+        $data['preco_venda']              = $this->decimal($data['preco_venda'] ?? '0');
+        $data['estoque_atual']            = $this->decimal($data['estoque_atual'] ?? '0');
+        $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
+        $data['percent_lucro']            = $percentLucro;
+        $data['mao_obra_valor']           = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $data['taxa_maquininha_percent']  = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
+        $data['taxa_governo_percent']     = $this->decimal($data['taxa_governo_percent'] ?? '0');
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;
+        $data['requer_preparo']   = isset($_POST['requer_preparo']) ? 1 : 0;
         $data['ativo']            = isset($_POST['ativo']) ? 1 : 0;
         $data['created_at']       = now();
         $data['updated_at']       = now();
@@ -82,7 +92,12 @@ class ProdutoController extends Controller
         }
 
         // Insere o produto localmente
-        $this->produto->insert($data);
+        $produtoId = $this->produto->insert($data);
+        $this->produto->syncComposicao(
+            $produtoId,
+            $_POST['componente_produto_id'] ?? [],
+            $_POST['quantidade_componente'] ?? []
+        );
 
         $this->flash('success', 'Produto cadastrado com sucesso!');
         $this->redirect('/produtos');
@@ -108,7 +123,9 @@ class ProdutoController extends Controller
         }
 
         $categorias = $this->categoria->findAtivas();
-        $this->view('produtos/form', ['produto' => $produto, 'categorias' => $categorias]);
+        $produtosComposicao = $this->produto->findAllForComposition((int)$id);
+        $composicao = $this->produto->findComposicao((int)$id);
+        $this->view('produtos/form', compact('produto', 'categorias', 'produtosComposicao', 'composicao'));
     }
 
     public function update(string $id): void
@@ -125,19 +142,27 @@ class ProdutoController extends Controller
         $data = $this->only([
             'categoria_id', 'nome', 'sku', 'codigo_barras', 'unidade',
             'preco_custo', 'preco_venda', 'percent_lucro',
+            'mao_obra_valor', 'taxa_maquininha_percent', 'taxa_governo_percent',
             'estoque_atual', 'estoque_minimo', 'controla_estoque', 'ativo'
         ]);
 
-        if (!empty($data['percent_lucro']) && !empty($data['preco_custo'])) {
-            $data['preco_venda'] = percentToPrice((float)$data['preco_custo'], (float)$data['percent_lucro']);
+        $precoCusto = $this->decimal($data['preco_custo'] ?? '0');
+        $percentLucro = $this->decimal($data['percent_lucro'] ?? '0');
+
+        if ($percentLucro > 0 && $precoCusto > 0) {
+            $data['preco_venda'] = percentToPrice($precoCusto, $percentLucro);
         }
 
-        $data['preco_custo']      = (float)str_replace(',', '.', $data['preco_custo'] ?? '0');
-        $data['preco_venda']      = (float)str_replace(',', '.', $data['preco_venda'] ?? '0');
-        $data['estoque_atual']    = (float)str_replace(',', '.', $data['estoque_atual'] ?? '0');
-        $data['estoque_minimo']   = (float)str_replace(',', '.', $data['estoque_minimo'] ?? '0');
-        $data['percent_lucro']    = (float)str_replace(',', '.', $data['percent_lucro'] ?? '0');
+        $data['preco_custo']              = $precoCusto;
+        $data['preco_venda']              = $this->decimal($data['preco_venda'] ?? '0');
+        $data['estoque_atual']            = $this->decimal($data['estoque_atual'] ?? '0');
+        $data['estoque_minimo']           = $this->decimal($data['estoque_minimo'] ?? '0');
+        $data['percent_lucro']            = $percentLucro;
+        $data['mao_obra_valor']           = $this->decimal($data['mao_obra_valor'] ?? '0');
+        $data['taxa_maquininha_percent']  = $this->decimal($data['taxa_maquininha_percent'] ?? '0');
+        $data['taxa_governo_percent']     = $this->decimal($data['taxa_governo_percent'] ?? '0');
         $data['controla_estoque'] = isset($_POST['controla_estoque']) ? 1 : 0;
+        $data['requer_preparo']   = isset($_POST['requer_preparo']) ? 1 : 0;
         $data['ativo']            = isset($_POST['ativo']) ? 1 : 0;
         $data['updated_at']       = now();
 
@@ -151,7 +176,13 @@ class ProdutoController extends Controller
             }
         }
 
-        $this->produto->update((int)$id, $data);
+        $produtoId = (int)$id;
+        $this->produto->update($produtoId, $data);
+        $this->produto->syncComposicao(
+            $produtoId,
+            $_POST['componente_produto_id'] ?? [],
+            $_POST['quantidade_componente'] ?? []
+        );
         $this->flash('success', 'Produto atualizado com sucesso!');
         $this->redirect('/produtos');
     }
@@ -220,5 +251,10 @@ class ProdutoController extends Controller
             'nome' => $file['name'],
             'tipo' => $file['type'],
         ];
+    }
+
+    private function decimal(mixed $value): float
+    {
+        return (float)str_replace(',', '.', (string)($value ?? '0'));
     }
 }

@@ -96,7 +96,21 @@ class ComandaController extends Controller
             return;
         }
 
-        $this->comanda->addItem((int)$id, $produtoId, $quantidade, $produto['preco_venda'], $observacao, $produto['nome'], $produto['unidade']);
+        $custos = $this->produto->getCustosVenda($produtoId);
+
+        $this->comanda->addItem(
+            (int)$id,
+            $produtoId,
+            $quantidade,
+            $produto['preco_venda'],
+            $observacao,
+            $produto['nome'],
+            $produto['unidade'],
+            $custos['custo_unitario'],
+            $custos['mao_obra_unitaria'],
+            $custos['taxa_maquininha_percent'],
+            $custos['taxa_governo_percent']
+        );
         $this->flash('success', 'Item adicionado!');
         $this->redirect("/comandas/{$id}");
     }

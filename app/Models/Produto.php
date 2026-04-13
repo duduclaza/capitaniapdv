@@ -100,6 +100,83 @@ class Produto extends Model
         );
     }
 
+    public function findAllForComposition(?int $excludeId = null): array
+    {
+        $sql = "SELECT id, nome, unidade, preco_custo
+                FROM produtos
+                WHERE ativo = 1";
+        $params = [];
+
+        if ($excludeId !== null) {
+            $sql .= " AND id <> ?";
+            $params[] = $excludeId;
+        }
+
+        $sql .= " ORDER BY nome ASC";
+        return $this->raw($sql, $params);
+    }
+
+    public function findComposicao(int $produtoId): array
+    {
+        return $this->raw(
+            "SELECT pc.*, p.nome AS componente_nome, p.unidade, p.preco_custo
+             FROM produto_composicoes pc
+             JOIN produtos p ON p.id = pc.componente_produto_id
+             WHERE pc.produto_id = ?
+             ORDER BY p.nome ASC",
+            [$produtoId]
+        );
+    }
+
+    public function syncComposicao(int $produtoId, array $componentes, array $quantidades): void
+    {
+        $this->rawExec("DELETE FROM produto_composicoes WHERE produto_id = ?", [$produtoId]);
+
+        foreach ($componentes as $index => $componenteId) {
+            $componenteId = (int)$componenteId;
+            $quantidade = (float)str_replace(',', '.', (string)($quantidades[$index] ?? 0));
+
+            if ($componenteId <= 0 || $quantidade <= 0 || $componenteId === $produtoId) {
+                continue;
+            }
+
+            $this->rawExec(
+                "INSERT INTO produto_composicoes (produto_id, componente_produto_id, quantidade, created_at, updated_at)
+                 VALUES (?, ?, ?, NOW(), NOW())
+                 ON DUPLICATE KEY UPDATE quantidade = VALUES(quantidade), updated_at = NOW()",
+                [$produtoId, $componenteId, $quantidade]
+            );
+        }
+    }
+
+    public function getCustosVenda(int $produtoId): array
+    {
+        $produto = $this->findById($produtoId);
+        if (!$produto) {
+            return [
+                'custo_unitario' => 0.0,
+                'mao_obra_unitaria' => 0.0,
+                'taxa_maquininha_percent' => 0.0,
+                'taxa_governo_percent' => 0.0,
+            ];
+        }
+
+        $custoComposicao = (float)$this->rawScalar(
+            "SELECT COALESCE(SUM(pc.quantidade * p.preco_custo), 0)
+             FROM produto_composicoes pc
+             JOIN produtos p ON p.id = pc.componente_produto_id
+             WHERE pc.produto_id = ?",
+            [$produtoId]
+        );
+
+        return [
+            'custo_unitario' => (float)($produto['preco_custo'] ?? 0) + $custoComposicao,
+            'mao_obra_unitaria' => (float)($produto['mao_obra_valor'] ?? 0),
+            'taxa_maquininha_percent' => (float)($produto['taxa_maquininha_percent'] ?? 0),
+            'taxa_governo_percent' => (float)($produto['taxa_governo_percent'] ?? 0),
+        ];
+    }
+
     public function possuiVinculos(int $id): bool
     {
         $emComandas = (int) $this->rawScalar(

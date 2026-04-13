@@ -1,6 +1,11 @@
 <?php 
 $isEdit = $produto !== null;
 $pageTitle = $isEdit ? 'Editar Produto' : 'Novo Produto';
+$produtosComposicao = $produtosComposicao ?? [];
+$composicao = $composicao ?? [];
+$composicaoRows = !empty($composicao)
+    ? $composicao
+    : [['componente_produto_id' => '', 'quantidade' => '1.000']];
 ?>
 
 <div class="max-w-3xl mx-auto fade-in-up">
@@ -154,6 +159,84 @@ $pageTitle = $isEdit ? 'Editar Produto' : 'Novo Produto';
             </div>
         </div>
 
+        <!-- Custos Operacionais -->
+        <div class="glass-card rounded-2xl p-6 space-y-5">
+            <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider border-b border-white/10 pb-3">
+                Custos Operacionais
+            </h3>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Mao de obra por venda (R$)</label>
+                    <input type="text" name="mao_obra_valor"
+                           value="<?= number_format($produto['mao_obra_valor'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa maquininha (%)</label>
+                    <input type="number" name="taxa_maquininha_percent" min="0" step="0.01"
+                           value="<?= number_format($produto['taxa_maquininha_percent'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-2">Taxa governo (%)</label>
+                    <input type="number" name="taxa_governo_percent" min="0" step="0.01"
+                           value="<?= number_format($produto['taxa_governo_percent'] ?? 0, 2, '.', '') ?>"
+                           placeholder="0.00"
+                           class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                </div>
+            </div>
+
+            <label class="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" name="requer_preparo" value="1"
+                       <?= ($produto['requer_preparo'] ?? 0) ? 'checked' : '' ?>
+                       class="w-4 h-4 accent-primary-500">
+                <div>
+                    <p class="text-sm font-medium text-white">Precisa de preparo</p>
+                    <p class="text-xs text-gray-500">Use para produtos montados na hora, como porcoes e drinks.</p>
+                </div>
+            </label>
+        </div>
+
+        <!-- Composicao -->
+        <div class="glass-card rounded-2xl p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="text-sm font-semibold text-gray-300 uppercase tracking-wider">Composicao</h3>
+                <button type="button" onclick="addComposicaoRow()"
+                        class="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white text-xs font-medium px-3 py-2 rounded-xl transition-all">
+                    <i data-lucide="plus" class="w-3 h-3"></i> Adicionar item
+                </button>
+            </div>
+
+            <p class="text-xs text-gray-500">Opcional. O custo da composicao soma ao custo base do produto no fechamento.</p>
+
+            <div id="composicaoRows" class="space-y-3">
+                <?php foreach ($composicaoRows as $item): ?>
+                <div class="composicao-row grid grid-cols-1 md:grid-cols-[1fr_150px_44px] gap-3">
+                    <select name="componente_produto_id[]"
+                            class="px-4 py-3 bg-dark-900 border border-white/10 rounded-xl text-white focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                        <option value="">Selecione o item</option>
+                        <?php foreach ($produtosComposicao as $pComp): ?>
+                        <option value="<?= $pComp['id'] ?>" <?= ($item['componente_produto_id'] ?? '') == $pComp['id'] ? 'selected' : '' ?>>
+                            <?= e($pComp['nome']) ?> - <?= formatMoney((float)$pComp['preco_custo']) ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                    <input type="text" name="quantidade_componente[]"
+                           value="<?= e($item['quantidade'] ?? '1.000') ?>"
+                           placeholder="Qtd"
+                           class="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+                    <button type="button" onclick="removeComposicaoRow(this)"
+                            class="h-11 md:h-auto rounded-xl bg-red-900/30 hover:bg-red-900/50 text-red-300 transition-colors flex items-center justify-center">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
         <!-- Estoque -->
         <div class="glass-card rounded-2xl p-6 space-y-5">
             <div class="flex items-center justify-between border-b border-white/10 pb-3">
@@ -247,7 +330,44 @@ $pageTitle = $isEdit ? 'Editar Produto' : 'Novo Produto';
     </form>
 </div>
 
+<template id="composicaoTemplate">
+    <div class="composicao-row grid grid-cols-1 md:grid-cols-[1fr_150px_44px] gap-3">
+        <select name="componente_produto_id[]"
+                class="px-4 py-3 bg-dark-900 border border-white/10 rounded-xl text-white focus:outline-none focus:border-primary-500 text-sm transition-colors">
+            <option value="">Selecione o item</option>
+            <?php foreach ($produtosComposicao as $pComp): ?>
+            <option value="<?= $pComp['id'] ?>"><?= e($pComp['nome']) ?> - <?= formatMoney((float)$pComp['preco_custo']) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <input type="text" name="quantidade_componente[]" value="1.000" placeholder="Qtd"
+               class="px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-primary-500 text-sm transition-colors">
+        <button type="button" onclick="removeComposicaoRow(this)"
+                class="h-11 md:h-auto rounded-xl bg-red-900/30 hover:bg-red-900/50 text-red-300 transition-colors flex items-center justify-center">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </button>
+    </div>
+</template>
+
 <script>
+function addComposicaoRow() {
+    const template = document.getElementById('composicaoTemplate');
+    document.getElementById('composicaoRows').appendChild(template.content.cloneNode(true));
+    lucide.createIcons();
+}
+
+function removeComposicaoRow(button) {
+    const rows = document.querySelectorAll('.composicao-row');
+    const row = button.closest('.composicao-row');
+
+    if (rows.length <= 1) {
+        row.querySelector('select').value = '';
+        row.querySelector('input').value = '1.000';
+        return;
+    }
+
+    row.remove();
+}
+
 // Image preview
 document.getElementById('imgInput')?.addEventListener('change', function(e) {
     const file = e.target.files[0];

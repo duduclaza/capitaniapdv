@@ -115,6 +115,7 @@ $router->get('/vendas/{id}/aguardando-pagamento', [VendaController::class, 'agua
 $router->get('/relatorios/vendas', [RelatorioController::class, 'vendas'], [AuthMiddleware::class]);
 $router->get('/relatorios/estoque-baixo', [RelatorioController::class, 'estoqueBaixo'], [AuthMiddleware::class]);
 $router->get('/relatorios/mais-vendidos', [RelatorioController::class, 'maisVendidos'], [AuthMiddleware::class]);
+$router->get('/relatorios/fechamento-semanal', [RelatorioController::class, 'fechamentoSemanal'], [AuthMiddleware::class]);
 $router->get('/relatorios/movimentacoes', [RelatorioController::class, 'movimentacoes'], [AuthMiddleware::class]);
 $router->get('/relatorios/exportar-vendas', [RelatorioController::class, 'exportarVendas'], [AuthMiddleware::class]);
 

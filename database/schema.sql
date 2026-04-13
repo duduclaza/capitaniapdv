@@ -54,9 +54,13 @@ CREATE TABLE IF NOT EXISTS `produtos` (
     `preco_custo`      DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     `preco_venda`      DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     `percent_lucro`    DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    `mao_obra_valor`   DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `taxa_maquininha_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    `taxa_governo_percent`    DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     `estoque_atual`    DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     `estoque_minimo`   DECIMAL(10,3) NOT NULL DEFAULT 0.000,
     `controla_estoque`  TINYINT(1) NOT NULL DEFAULT 1,
+    `requer_preparo`    TINYINT(1) NOT NULL DEFAULT 0,
     `ativo`             TINYINT(1) NOT NULL DEFAULT 1,
     `imagem_blob`       MEDIUMBLOB,
     `imagem_nome`       VARCHAR(255),
@@ -70,6 +74,23 @@ CREATE TABLE IF NOT EXISTS `produtos` (
     INDEX `idx_sku` (`sku`),
     INDEX `idx_codigo_barras` (`codigo_barras`),
     CONSTRAINT `fk_produto_categoria` FOREIGN KEY (`categoria_id`) REFERENCES `categorias` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ========================
+-- PRODUTO COMPOSICOES
+-- ========================
+CREATE TABLE IF NOT EXISTS `produto_composicoes` (
+    `id`                    INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `produto_id`            INT UNSIGNED NOT NULL,
+    `componente_produto_id` INT UNSIGNED NOT NULL,
+    `quantidade`            DECIMAL(10,3) NOT NULL DEFAULT 1.000,
+    `created_at`            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`            DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_produto_componente` (`produto_id`, `componente_produto_id`),
+    INDEX `idx_componente_produto` (`componente_produto_id`),
+    CONSTRAINT `fk_pc_produto` FOREIGN KEY (`produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_pc_componente` FOREIGN KEY (`componente_produto_id`) REFERENCES `produtos` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ========================
@@ -149,6 +170,10 @@ CREATE TABLE IF NOT EXISTS `comanda_itens` (
     `produto_id`      INT UNSIGNED,
     `produto_nome`    VARCHAR(200),
     `produto_unidade` VARCHAR(20),
+    `custo_unitario`  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `mao_obra_unitaria` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `taxa_maquininha_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    `taxa_governo_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     `quantidade`      DECIMAL(10,3) NOT NULL DEFAULT 1.000,
     `preco_unitario`  DECIMAL(10,2) NOT NULL,
     `observacao`      TEXT,
@@ -200,6 +225,10 @@ CREATE TABLE IF NOT EXISTS `venda_itens` (
     `venda_id`        INT UNSIGNED NOT NULL,
     `produto_id`      INT UNSIGNED,
     `produto_nome`    VARCHAR(200),
+    `custo_unitario`  DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `mao_obra_unitaria` DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    `taxa_maquininha_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    `taxa_governo_percent` DECIMAL(5,2) NOT NULL DEFAULT 0.00,
     `quantidade`      DECIMAL(10,3) NOT NULL,
     `preco_unitario`  DECIMAL(10,2) NOT NULL,
     `desconto_item`   DECIMAL(10,2) NOT NULL DEFAULT 0.00,

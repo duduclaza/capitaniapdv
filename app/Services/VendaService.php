@@ -78,6 +78,7 @@ class VendaService
                 if (!$produto) {
                     throw new \RuntimeException('Produto nao encontrado.');
                 }
+                $custos = $this->produtoModel->getCustosVenda((int)$item['produto_id']);
 
                 $this->vendaModel->addItem(
                     $vendaId,
@@ -85,7 +86,11 @@ class VendaService
                     $item['quantidade'],
                     $item['preco_unitario'],
                     0,
-                    $produto['nome']
+                    $produto['nome'],
+                    $custos['custo_unitario'],
+                    $custos['mao_obra_unitaria'],
+                    $custos['taxa_maquininha_percent'],
+                    $custos['taxa_governo_percent']
                 );
 
                 // Baixar estoque
@@ -171,7 +176,11 @@ class VendaService
                     $item['quantidade'],
                     $item['preco_unitario'],
                     0,
-                    $item['produto_nome'] ?? null
+                    $item['produto_nome'] ?? null,
+                    (float)($item['custo_unitario'] ?? 0),
+                    (float)($item['mao_obra_unitaria'] ?? 0),
+                    (float)($item['taxa_maquininha_percent'] ?? 0),
+                    (float)($item['taxa_governo_percent'] ?? 0)
                 );
 
                 // Baixar estoque
