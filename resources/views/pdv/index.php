@@ -339,19 +339,20 @@ function clearCart() {
 
 function renderCart() {
     const container = document.getElementById('cartItems');
-    const empty     = document.getElementById('cartEmpty');
-    
+
     if (cart.length === 0) {
-        container.innerHTML = '';
-        container.appendChild(empty);
-        empty.style.display = 'flex';
+        container.innerHTML = `
+            <div id="cartEmpty" class="flex flex-col items-center justify-center h-full text-gray-600 py-8">
+                <i data-lucide="shopping-cart" class="w-10 h-10 mb-3 opacity-30"></i>
+                <p class="text-sm">Carrinho vazio</p>
+            </div>`;
         document.getElementById('btnFinalizar').disabled = true;
         document.getElementById('cartCount').textContent = '0';
         updateTotals();
+        lucide.createIcons();
         return;
     }
-    
-    empty.style.display = 'none';
+
     container.innerHTML = cart.map((item, idx) => `
         <div class="p-4 hover:bg-white/3 transition-colors">
             <div class="flex items-start gap-3">
