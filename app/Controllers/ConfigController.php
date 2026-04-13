@@ -188,6 +188,7 @@ class ConfigController extends Controller
         try {
             $db->exec("DELETE FROM funcionario_pagamentos");
             $db->exec("DELETE FROM caixa_movimentos");
+            $db->exec("DELETE FROM movimentacoes_estoque WHERE referencia_tipo = 'venda'");
             $db->exec("DELETE FROM venda_itens");
             $db->exec("DELETE FROM vendas");
             $db->exec("DELETE FROM comanda_itens");
@@ -299,25 +300,47 @@ class ConfigController extends Controller
     private function getResetStats(): array
     {
         $db = Database::getInstance();
-        $tables = [
-            'vendas' => 'Vendas',
-            'venda_itens' => 'Itens de venda',
-            'comandas' => 'Comandas',
-            'comanda_itens' => 'Itens de comanda',
-            'caixa_movimentos' => 'Movimentos de caixa',
-            'funcionario_pagamentos' => 'Baixas de funcionários',
+        $items = [
+            'vendas' => [
+                'label' => 'Vendas',
+                'sql' => 'SELECT COUNT(*) FROM `vendas`',
+            ],
+            'venda_itens' => [
+                'label' => 'Itens de venda',
+                'sql' => 'SELECT COUNT(*) FROM `venda_itens`',
+            ],
+            'comandas' => [
+                'label' => 'Comandas',
+                'sql' => 'SELECT COUNT(*) FROM `comandas`',
+            ],
+            'comanda_itens' => [
+                'label' => 'Itens de comanda',
+                'sql' => 'SELECT COUNT(*) FROM `comanda_itens`',
+            ],
+            'caixa_movimentos' => [
+                'label' => 'Movimentos de caixa',
+                'sql' => 'SELECT COUNT(*) FROM `caixa_movimentos`',
+            ],
+            'movimentacoes_estoque_venda' => [
+                'label' => 'Estoque por venda',
+                'sql' => "SELECT COUNT(*) FROM `movimentacoes_estoque` WHERE referencia_tipo = 'venda'",
+            ],
+            'funcionario_pagamentos' => [
+                'label' => 'Baixas de funcionários',
+                'sql' => 'SELECT COUNT(*) FROM `funcionario_pagamentos`',
+            ],
         ];
 
         $stats = [];
-        foreach ($tables as $table => $label) {
+        foreach ($items as $key => $item) {
             try {
-                $stats[$table] = [
-                    'label' => $label,
-                    'count' => (int)$db->query("SELECT COUNT(*) FROM `{$table}`")->fetchColumn(),
+                $stats[$key] = [
+                    'label' => $item['label'],
+                    'count' => (int)$db->query($item['sql'])->fetchColumn(),
                 ];
             } catch (\Throwable) {
-                $stats[$table] = [
-                    'label' => $label,
+                $stats[$key] = [
+                    'label' => $item['label'],
                     'count' => 0,
                 ];
             }

@@ -202,7 +202,7 @@
                 </div>
                 <div>
                     <h3 class="text-xl font-bold text-white">Zerar dados de vendas</h3>
-                    <p class="text-sm text-red-200/80">Apaga vendas, comandas, movimentos de caixa e baixas de pagamento. Produtos, clientes, funcionários e usuários ficam cadastrados.</p>
+                    <p class="text-sm text-red-200/80">Apaga vendas, comandas, movimentos de caixa, saídas de estoque por venda e baixas de pagamento. Produtos, clientes, funcionários e usuários ficam cadastrados.</p>
                 </div>
             </div>
         </div>
@@ -225,7 +225,7 @@
             <?php if (($user['perfil'] ?? '') === 'admin'): ?>
                 <form method="POST" action="/config/zerar-vendas"
                       class="rounded-2xl bg-red-950/20 border border-red-500/20 p-5 space-y-4"
-                      onsubmit="return confirm('ATENÇÃO: isso vai apagar todos os registros de vendas, caixa, comandas e baixas de funcionários. Deseja continuar?')">
+                      onsubmit="return confirm('ATENÇÃO: isso vai apagar todos os registros de vendas, caixa, comandas, saídas de estoque por venda e baixas de funcionários. Deseja continuar?')">
                     <?= csrf_field() ?>
                     <div>
                         <label class="block text-xs font-semibold text-red-200 mb-2">Senha do administrador</label>
