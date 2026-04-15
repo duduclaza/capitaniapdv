@@ -40,6 +40,7 @@ $router->get('/pdv/verificar/{id}', [PdvController::class, 'verificarPagamento']
 $router->get('/produtos', [ProdutoController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/produtos/criar', [ProdutoController::class, 'create'], [AuthMiddleware::class]);
 $router->post('/produtos', [ProdutoController::class, 'store'], [AuthMiddleware::class]);
+$router->get('/produtos/{id}/duplicar', [ProdutoController::class, 'duplicate'], [AuthMiddleware::class]);
 $router->get('/produtos/{id}/editar', [ProdutoController::class, 'edit'], [AuthMiddleware::class]);
 $router->post('/produtos/{id}', [ProdutoController::class, 'update'], [AuthMiddleware::class]);
 $router->post('/produtos/{id}/deletar', [ProdutoController::class, 'destroy'], [AuthMiddleware::class]);

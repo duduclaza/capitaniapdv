@@ -1,6 +1,8 @@
 <?php 
-$isEdit = $produto !== null;
-$pageTitle = $isEdit ? 'Editar Produto' : 'Novo Produto';
+$isDuplicate = $isDuplicate ?? false;
+$duplicateSourceId = $duplicateSourceId ?? null;
+$isEdit = $produto !== null && !$isDuplicate;
+$pageTitle = $isEdit ? 'Editar Produto' : ($isDuplicate ? 'Duplicar Produto' : 'Novo Produto');
 $produtosComposicao = $produtosComposicao ?? [];
 $composicao = $composicao ?? [];
 $composicaoRows = !empty($composicao)
@@ -24,6 +26,17 @@ $composicaoRows = !empty($composicao)
     <form method="POST" action="<?= $isEdit ? '/produtos/' . $produto['id'] : '/produtos' ?>" 
           enctype="multipart/form-data" class="space-y-6">
         <?= csrf_field() ?>
+        <?php if ($isDuplicate && $duplicateSourceId): ?>
+            <input type="hidden" name="duplicate_source_id" value="<?= (int)$duplicateSourceId ?>">
+
+            <div class="bg-emerald-900/20 border border-emerald-500/20 rounded-xl p-4 text-sm text-gray-300">
+                <p class="flex items-center gap-2 mb-1">
+                    <i data-lucide="copy" class="w-4 h-4 text-emerald-400"></i>
+                    <strong class="text-white">Produto duplicado como novo cadastro</strong>
+                </p>
+                <p class="text-gray-400 text-xs">Revise nome, imagem, SKU, código de barras e estoque antes de cadastrar.</p>
+            </div>
+        <?php endif; ?>
 
         <!-- Info Básica -->
         <div class="glass-card rounded-2xl p-6 space-y-5">
@@ -317,8 +330,8 @@ $composicaoRows = !empty($composicao)
             <div class="flex items-start gap-6">
                 <!-- Preview -->
                 <div class="flex-shrink-0">
-                    <?php if ($isEdit && !empty($produto['imagem_blob'])): ?>
-                        <img id="imgPreview" src="/produtos/<?= $produto['id'] ?>/imagem" 
+                    <?php if (($isEdit || $isDuplicate) && !empty($produto['imagem_blob'])): ?>
+                        <img id="imgPreview" src="/produtos/<?= $isDuplicate ? (int)$duplicateSourceId : (int)$produto['id'] ?>/imagem" 
                              class="w-24 h-24 rounded-xl object-cover border border-white/10">
                     <?php else: ?>
                         <div id="imgPreview" class="w-24 h-24 rounded-xl bg-white/5 border border-white/10 flex flex-col items-center justify-center">
@@ -364,7 +377,7 @@ $composicaoRows = !empty($composicao)
                 <button type="submit" 
                         class="flex items-center gap-2 bg-primary-600 hover:bg-primary-500 text-white text-sm font-semibold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-primary-900/30">
                     <i data-lucide="save" class="w-4 h-4"></i>
-                    <?= $isEdit ? 'Salvar Alterações' : 'Cadastrar Produto' ?>
+                    <?= $isEdit ? 'Salvar Alterações' : ($isDuplicate ? 'Cadastrar Cópia' : 'Cadastrar Produto') ?>
                 </button>
             </div>
         </div>

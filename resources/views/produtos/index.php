@@ -36,7 +36,7 @@
                 <tbody class="divide-y divide-white/5">
                     <?php if (empty($produtos)): ?>
                     <tr>
-                        <td colspan="9" class="text-center py-12 text-gray-500">
+                        <td colspan="10" class="text-center py-12 text-gray-500">
                             <i data-lucide="package" class="w-10 h-10 mx-auto mb-3 opacity-30"></i>
                             <p>Nenhum produto cadastrado</p>
                         </td>
@@ -101,6 +101,11 @@
                                 <a href="/produtos/<?= $p['id'] ?>/editar" 
                                    class="p-1.5 rounded-lg hover:bg-primary-900/30 text-gray-400 hover:text-primary-400 transition-colors">
                                     <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </a>
+                                <a href="/produtos/<?= $p['id'] ?>/duplicar"
+                                   title="Duplicar produto"
+                                   class="p-1.5 rounded-lg hover:bg-emerald-900/30 text-gray-400 hover:text-emerald-400 transition-colors">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
                                 </a>
                                 <form method="POST" action="/produtos/<?= $p['id'] ?>/deletar" 
                                       onsubmit="return confirm('Excluir produto de vez? O historico mantem o nome salvo.')">

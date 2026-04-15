@@ -31,6 +31,31 @@ class ProdutoController extends Controller
         $this->view('produtos/form', compact('categorias', 'produtosComposicao', 'composicao') + ['produto' => null]);
     }
 
+    public function duplicate(string $id): void
+    {
+        $produtoId = (int)$id;
+        $produto = $this->produto->findByIdWithCategory($produtoId);
+        if (!$produto) {
+            $this->flash('error', 'Produto nao encontrado.');
+            $this->redirect('/produtos');
+            return;
+        }
+
+        $produto['nome'] = trim(($produto['nome'] ?? '') . ' (cópia)');
+        $produto['sku'] = '';
+        $produto['codigo_barras'] = '';
+        $produto['estoque_atual'] = 0;
+        $produto['percent_lucro'] = (float)($produto['percent_lucro'] ?? 0);
+
+        $categorias = $this->categoria->findAtivas();
+        $produtosComposicao = $this->produto->findAllForComposition();
+        $composicao = $this->produto->findComposicao($produtoId);
+        $this->view('produtos/form', compact('produto', 'categorias', 'produtosComposicao', 'composicao') + [
+            'isDuplicate' => true,
+            'duplicateSourceId' => $produtoId,
+        ]);
+    }
+
     public function store(): void
     {
         $this->validateCsrf();
@@ -117,6 +142,11 @@ class ProdutoController extends Controller
                 $data['imagem_nome'] = $imgData['nome'];
                 $data['imagem_tipo'] = $imgData['tipo'];
             }
+        } elseif (!empty($_POST['duplicate_source_id'])) {
+            $imgData = $this->produto->getImagem((int)$_POST['duplicate_source_id']);
+            $data['imagem_blob'] = $imgData['imagem_blob'] ?? null;
+            $data['imagem_nome'] = $imgData['imagem_nome'] ?? null;
+            $data['imagem_tipo'] = $imgData['imagem_tipo'] ?? null;
         } else {
             $data['imagem_blob'] = null;
             $data['imagem_nome'] = null;
